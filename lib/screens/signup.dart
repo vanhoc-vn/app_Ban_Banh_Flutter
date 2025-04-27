@@ -29,6 +29,9 @@ class _SignupState extends State<Signup> {
     }
   }
 
+  Widget _buildAllTextFormField(){}
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -38,67 +38,65 @@ class _LoginState extends State<Login> {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start, // <-- Canh trái cho đẹp hơn
               children: <Widget>[
-                Container(
-                  height: 300,
-                  width: double.infinity,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      const Text(
-                        "Login",
-                        style: TextStyle(
-                          fontSize: 50,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      MyTextFormField(
-                        name: "Email",
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Vui lòng nhập Email";
-                          } else if (!regExp.hasMatch(value)) {
-                            return "Email không đúng.";
-                          }
-                          return null;
-                        },
-                      ),
-                      PassWordTextFormField(
-                        obserText: obserText,
-                        name: "Password",
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Vui lòng nhập Password";
-                          } else if (value.length < 8) {
-                            return "Mật khẩu phải có ít nhất 8 ký tự";
-                          }
-                          return null;
-                        },
-                        onTap: () {
-                          FocusScope.of(context).unfocus();
-                          setState(() {
-                            obserText = !obserText;
-                          });
-                        },
-                      ),
-                      MyButton(
-                        onPressed: () {
-                          validation();
-                        },
-                        name: "Login",
-                      ),
-                      ChangeScreen(
-                        name: "SignUp",
-                        whichAccount: "I have Not Account!",
-                        onTap: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (ctx) => const Signup()),
-                          );
-                        },
-                      ),
-                    ],
+                const SizedBox(height: 100), // <-- thêm khoảng trống để đẩy xuống
+                const Center(
+                  child: Text(
+                    "Login",
+                    style: TextStyle(
+                      fontSize: 50,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                ),
+                const SizedBox(height: 30),
+                MyTextFormField(
+                  name: "Email",
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please Fill Email";
+                    } else if (!regExp.hasMatch(value)) {
+                      return "Email không đúng.";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                PassWordTextFormField(
+                  obserText: obserText,
+                  name: "Password",
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please Fill Password";
+                    } else if (value.length < 8) {
+                      return "Mật khẩu phải có ít nhất 8 ký tự";
+                    }
+                    return null;
+                  },
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    setState(() {
+                      obserText = !obserText;
+                    });
+                  },
+                ),
+                const SizedBox(height: 20),
+                MyButton(
+                  onPressed: () {
+                    validation();
+                  },
+                  name: "Login",
+                ),
+                const SizedBox(height: 10),
+                ChangeScreen(
+                  name: "SignUp",
+                  whichAccount: "I Have Not Account!",
+                  onTap: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (ctx) => const Signup()),
+                    );
+                  },
                 ),
               ],
             ),
