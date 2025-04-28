@@ -29,8 +29,101 @@ class _SignupState extends State<Signup> {
     }
   }
 
-  Widget _buildAllTextFormField(){}
+  Widget _buildAllTextFormField(){
+    return Container(
+      height: 300,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          MyTextFormField(
+            name: "UserName",
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Vui lòng điền User Name.";
+              } else if (value.length < 6) {
+                return "User Name quá ngắn.";
+              }
+              return null; // hợp lệ thì return null
+            },
+          ),
 
+          MyTextFormField(
+            name: "Email",
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Vui lòng nhập Email";
+              } else if (!regExp.hasMatch(value)) {
+                return "Email không đúng.";
+              }
+              return null;
+            },
+          ),
+
+          PassWordTextFormField(
+            obserText: obserText,
+            name: "Password",
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Vui lòng nhập Password";
+              } else if (value.length < 8) {
+                return "Mật khẩu phải có ít nhất 8 ký tự";
+              }
+              return null;
+            },
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              setState(() {
+                obserText = !obserText;
+              });
+            },
+          ),
+          MyTextFormField(
+            name: "Phone Number",
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Vui lòng nhập số điện thoại.";
+              } else if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                return "Số điện thoại chỉ được chứa số.";
+              } else if (value.length < 9) {
+                return "Số điện thoại phải có ít nhất 9 chữ số.";
+              }
+              return null;
+            },
+          ),
+
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomPart() {
+    return Container(
+      height: 400,
+      margin: EdgeInsets.symmetric(horizontal: 10),
+      width: double.infinity,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          _buildAllTextFormField(),
+          MyButton(
+            name: "SignUp",
+            onPressed: () {
+              validation();
+            },
+          ),
+          ChangeScreen(
+            name: "Login",
+            whichAccount: "I have Alrealy An Account!",
+            onTap: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (ctx) => Login()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,87 +154,9 @@ class _SignupState extends State<Signup> {
                   ),
                 ),
                 SizedBox(height: 20),
-                Container(
-                  height: 400,
-                  margin: EdgeInsets.symmetric(horizontal: 10),
-                  width: double.infinity,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      MyTextFormField(
-                          name: "UserName",
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Vui lòng điền User Name.";
-                            } else if (value.length < 6) {
-                              return "User Name quá ngắn.";
-                            }
-                            return null; // hợp lệ thì return null
-                          },
-                      ),
-
-                      MyTextFormField(
-                        name: "Email",
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Vui lòng nhập Email";
-                          } else if (!regExp.hasMatch(value)) {
-                            return "Email không đúng.";
-                          }
-                          return null;
-                        },
-                      ),
-
-                      PassWordTextFormField(
-                        obserText: obserText,
-                        name: "Password",
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Vui lòng nhập Password";
-                          } else if (value.length < 8) {
-                            return "Mật khẩu phải có ít nhất 8 ký tự";
-                          }
-                          return null;
-                        },
-                        onTap: () {
-                          FocusScope.of(context).unfocus();
-                          setState(() {
-                            obserText = !obserText;
-                          });
-                        },
-                      ),
-                      MyTextFormField(
-                          name: "Phone Number",
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Vui lòng nhập số điện thoại.";
-                            } else if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-                              return "Số điện thoại chỉ được chứa số.";
-                            } else if (value.length < 9) {
-                              return "Số điện thoại phải có ít nhất 9 chữ số.";
-                            }
-                            return null;
-                          },
-                      ),
-                      MyButton(
-                        name: "SignUp",
-                        onPressed: () {
-                          validation();
-                        },
-                      ),
-                      ChangeScreen(
-                        name: "Login",
-                        whichAccount: "I have Alrealy An Account!",
-                        onTap: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (ctx) => Login()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                /////
                 // Thêm các input ở đây nếu muốn
+                _buildBottomPart(),
               ],
             ),
           ),
