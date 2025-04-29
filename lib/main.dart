@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:e_commerical/screens/signup.dart'; // đảm bảo đúng đường dẫn của bạn
 import 'package:e_commerical/screens/login.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+Future<void> main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const AppWrapper());
 }
 
