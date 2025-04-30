@@ -5,8 +5,10 @@ class PassWordTextFormField extends StatelessWidget {
   final String name;
   final String? Function(String?) validator;
   final VoidCallback onTap;
+  final void Function(String)? onChanged;
 
   const PassWordTextFormField({
+    required this.onChanged,
     required this.onTap,
     required this.name,
     required this.obserText,
@@ -19,9 +21,11 @@ class PassWordTextFormField extends StatelessWidget {
     return TextFormField(
       obscureText: obserText,
       validator: validator,
+      onChanged: onChanged,
       decoration: InputDecoration(
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
         hintText: name,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         suffixIcon: GestureDetector(
           onTap: onTap,
           child: Icon(
