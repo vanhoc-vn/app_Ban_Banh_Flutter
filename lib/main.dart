@@ -1,3 +1,4 @@
+import 'package:e_commerical/screens/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:e_commerical/screens/signup.dart'; // đảm bảo đúng đường dẫn của bạn
 import 'package:e_commerical/screens/login.dart';
@@ -24,7 +25,7 @@ class AppWrapper extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const PhoneFrame(child: Login()), // chạy Signup với giao diện điện thoại
+      home:  PhoneFrame(child: HomePage()), // chạy Signup với giao diện điện thoại
     );
   }
 }
