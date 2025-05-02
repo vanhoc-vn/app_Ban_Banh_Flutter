@@ -27,7 +27,7 @@ class AppWrapper extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home:  PhoneFrame(child: ListProduct()), // chạy Signup với giao diện điện thoại
+      home:  PhoneFrame(child: HomePage()), // chạy Signup với giao diện điện thoại
     );
   }
 }

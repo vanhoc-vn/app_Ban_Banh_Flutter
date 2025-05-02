@@ -1,52 +1,25 @@
+import 'package:e_commerical/screens/listproduct.dart';
+import 'package:e_commerical/widgets/singleproduct.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
 class HomePage extends StatelessWidget {
-  Widget _buildFeaturedProduct({
-    required String name,
-    required double price,
-    required String image,
-  }) {
-    return Card(
-      child: Container(
-        height: 250,
-        width: 160,
-        child: Column(
-          children: <Widget>[
-            Container(
-              height: 190,
-              width: 150,
-              decoration: BoxDecoration(
-                image: DecorationImage(image: AssetImage("images/$image")),
-              ),
-            ),
-            Text(
-              "\$ $price",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 17,
-                color: Color(0xff9b96d6),
-              ),
-            ),
-            Text(name, style: TextStyle(fontSize: 17)),
-          ],
+  Widget _buildCategoryProduct({required String image, required int color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: CircleAvatar(
+        maxRadius: 30,
+        backgroundColor: Color(color),
+        child: Container(
+          height: 40,
+          child: Image(color: Colors.white, image: AssetImage("images/$image")),
         ),
       ),
     );
   }
 
-  Widget _buildCategoryProduct({required String image, required int color}) {
-    return CircleAvatar(
-      maxRadius: 30,
-      backgroundColor: Color(color),
-      child: Container(
-        height: 40,
-        child: Image(color: Colors.white, image: AssetImage("images/$image")),
-      ),
-    );
-  }
-
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
-  // const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,73 +30,100 @@ class HomePage extends StatelessWidget {
         centerTitle: true,
         elevation: 0.0,
         backgroundColor: Colors.white,
-
         leading: IconButton(
           icon: Icon(Icons.menu, color: Colors.black),
           onPressed: () {
             _key.currentState?.openDrawer();
           },
         ),
-
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.notifications_none, color: Colors.black),
+            icon: Icon(Icons.search, color: Colors.black),
             onPressed: () {},
           ),
           IconButton(
-            icon: Icon(Icons.send, color: Colors.black),
+            icon: Icon(Icons.notifications_none, color: Colors.black),
             onPressed: () {},
           ),
         ],
       ),
       body: Container(
-      //  color: Colors.white,
         height: double.infinity,
-        // chiều cao bao phủ hết cái body
         width: double.infinity,
         margin: EdgeInsets.symmetric(horizontal: 20),
         child: ListView(
-          children: [
+          shrinkWrap: true,
+          physics: BouncingScrollPhysics(),
+          children: <Widget>[
             Column(
               children: <Widget>[
                 Container(
-                  height: 120,
                   width: double.infinity,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      TextFormField(
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.search),
-                          hintText: "Search Something",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
+                      Container(
+                        height: 180,
+                        width: double.infinity,
+                        child: FlutterCarousel(
+                          items: [
+                            Image.asset(
+                              "images/mikhongmau.png",
+                              fit: BoxFit.cover,
+                            ),
+                            Image.asset(
+                              "images/banhmy01.png",
+                              fit: BoxFit.cover,
+                            ),
+                          ],
+                          options: CarouselOptions(
+                            autoPlay: true,
+                            viewportFraction: 1.0,
+                            height: 250,
                           ),
                         ),
                       ),
+
                       Container(
                         height: 50,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Featured",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold, // chu dam
-                                  ),
-                                ),
-                                Text(
-                                  "See All",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold, // chu dam
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              "Categorie",
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Container(
+                        height: 60,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: <Widget>[
+                            _buildCategoryProduct(
+                              image: "icon_ao.png",
+                              color: 0xff33dcfd,
+                            ),
+                            _buildCategoryProduct(
+                              image: "icon_ao.png",
+                              color: 0xfff38cdd,
+                            ),
+                            _buildCategoryProduct(
+                              image: "icon_ao.png",
+                              color: 0xff4ff2af,
+                            ),
+                            _buildCategoryProduct(
+                              image: "icon_ao.png",
+                              color: 0xff74acf7,
+                            ),
+                            _buildCategoryProduct(
+                              image: "icon_ao.png",
+                              color: 0xfffc6c8d,
                             ),
                           ],
                         ),
@@ -131,72 +131,65 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                 ),
-                Row(
+                SizedBox(height: 10),
+                Column(
                   children: <Widget>[
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Row(
-                          children: <Widget>[
-                            _buildFeaturedProduct(
-                              name: "Bánh mỳ Sài Gòn",
-                              price: 30.0,
-                              image: "banhmy01.png",
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Featured",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            _buildFeaturedProduct(
-                              name: "Hình ảnh nỗ lực",
-                              price: 33.0,
-                              image: "hinhbongnoluc.jpg",
+                            GestureDetector(
+                              onTap: (){
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder:
+                                        (ctx) => ListProduct(name: "Featured"
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "View more",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
+                        ),
+                        SizedBox(height: 10),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: <Widget>[
+                              SingleProduct(
+                                image: "banhmy01.png",
+                                name: "Men Long T Shirt",
+                                price: 30.0,
+                              ),
+                              SingleProduct(
+                                image: "banhmy01.png",
+                                name: "Women white watch",
+                                price: 33.0,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                Container(
-                  height: 70,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(
-                        "Categorie",
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        "See All",
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  height: 60,
-                  child: Row(
-                    children: <Widget>[
-                      _buildCategoryProduct(
-                        image: "icon_ao.png",
-                        color: 0xff33dcfd,
-                      ),
-                      _buildCategoryProduct(
-                        image: "icon_ao.png",
-                        color: 0xfff38cdd,
-                      ),
-                      _buildCategoryProduct(
-                        image: "icon_ao.png",
-                        color: 0xff4ff2af,
-                      ),
-                      _buildCategoryProduct(
-                        image: "icon_ao.png",
-                        color: 0xff74acf7,
-                      ),
-                      _buildCategoryProduct(
-                        image: "icon_ao.png",
-                        color: 0xfffc6c8d,
-                      ),
-                    ],
-                  ),
-                ),
+                SizedBox(height: 20),
                 Container(
                   height: 50,
                   child: Column(
@@ -209,14 +202,26 @@ class HomePage extends StatelessWidget {
                             "New Achives",
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold, // chu dam
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
-                            "See All",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold, // chu dam
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder:
+                                      (ctx) => ListProduct(name: "New Achives"
+                                      ),
+                                ),
+                              );
+                            },
+
+                            child: Text(
+                              "View more",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -224,27 +229,23 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                 ),
-                Row(
-                  children: <Widget>[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            _buildFeaturedProduct(
-                              name: "A man Watch",
-                              price: 30.0,
-                              image: "banhmy01.png",
-                            ),
-                            _buildFeaturedProduct(
-                              name: "A men pant",
-                              price: 33.0,
-                              image: "hinhbongnoluc.jpg",),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: <Widget>[
+                      SingleProduct(
+                        image: "banhmy01.png",
+                        name: "A Men Watch",
+                        price: 30.0,
+                      ),
+                      SingleProduct(
+                        image: "banhmy01.png",
+                        name: "A Men Pant",
+                        price: 33.0,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -254,5 +255,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
-//39:28

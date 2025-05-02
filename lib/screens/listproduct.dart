@@ -1,38 +1,11 @@
+import 'package:e_commerical/screens/homepage.dart';
+import 'package:e_commerical/widgets/singleproduct.dart';
 import 'package:flutter/material.dart';
 
 class ListProduct extends StatelessWidget {
-  Widget _buildFeaturedProduct({
-    required String name,
-    required double price,
-    required String image,
-  }) {
-    return Card(
-      child: Container(
-        height: 250,
-        width: 160,
-        child: Column(
-          children: <Widget>[
-            Container(
-              height: 190,
-              width: 150,
-              decoration: BoxDecoration(
-                image: DecorationImage(image: AssetImage("images/$image")),
-              ),
-            ),
-            Text(
-              "\$ $price",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 17,
-                color: Color(0xff9b96d6),
-              ),
-            ),
-            Text(name, style: TextStyle(fontSize: 17)),
-          ],
-        ),
-      ),
-    );
-  }
+  final String name;
+
+  ListProduct({required this.name});
 
   Widget _buildCategoryProduct({required String image, required int color}) {
     return CircleAvatar(
@@ -44,6 +17,7 @@ class ListProduct extends StatelessWidget {
       ),
     );
   }
+
   // const ListProduct({super.key});
 
   @override
@@ -54,7 +28,12 @@ class ListProduct extends StatelessWidget {
         elevation: 0.0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (ctx) => HomePage()),
+            );
+          },
         ),
         actions: <Widget>[
           IconButton(
@@ -67,61 +46,82 @@ class ListProduct extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
-        children: <Widget>[
-          Container(
-            height: 50,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
+
+      body: Container(
+        margin: EdgeInsets.symmetric(horizontal: 20),
+        child: ListView(
+          children: [
+            Column(
               children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Featured",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold, // chu dam
-                      ),
-                    ),
-                    Text(
-                      "See All",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold, // chu dam
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Row(
-            children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
+                Container(
+                  height: 50,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: <Widget>[
-                      _buildFeaturedProduct(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold, // chu dam
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10),
+                Container(
+                  height: 700,
+                  child: GridView.count(
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.6,
+                    crossAxisCount: 2,
+                    scrollDirection: Axis.vertical,
+                    children: <Widget>[
+                      SingleProduct(
                         name: "Bánh mỳ Sài Gòn",
                         price: 30.0,
                         image: "banhmy01.png",
                       ),
-                      _buildFeaturedProduct(
+                      SingleProduct(
                         name: "Hình ảnh nỗ lực",
+                        price: 33.0,
+                        image: "hinhbongnoluc.jpg",
+                      ),
+                      SingleProduct(
+                        name: "Mobile Cover",
+                        price: 30.0,
+                        image: "banhmy01.png",
+                      ),
+                      SingleProduct(
+                        name: "Google Mp3",
+                        price: 33.0,
+                        image: "hinhbongnoluc.jpg",
+                      ),
+                      SingleProduct(
+                        name: "Camera",
+                        price: 30.0,
+                        image: "banhmy01.png",
+                      ),
+                      SingleProduct(
+                        name: "Mouse",
                         price: 33.0,
                         image: "hinhbongnoluc.jpg",
                       ),
                     ],
                   ),
-                ],
-              ),
-            ],
-          ),
-        ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
 //4:36
