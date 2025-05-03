@@ -2,6 +2,7 @@ import 'package:e_commerical/screens/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:e_commerical/screens/signup.dart'; // đảm bảo đúng đường dẫn của bạn
 import 'package:e_commerical/screens/login.dart';
+import 'package:e_commerical/screens/detailscreen.dart';
 import 'package:e_commerical/screens/listproduct.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';

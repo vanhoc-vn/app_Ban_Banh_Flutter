@@ -1,9 +1,15 @@
+import 'package:e_commerical/screens/detailscreen.dart';
 import 'package:e_commerical/screens/listproduct.dart';
 import 'package:e_commerical/widgets/singleproduct.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   Widget _buildCategoryProduct({required String image, required int color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -18,13 +24,97 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  bool homeColor = true;
+
+  bool cartColor = false;
+
+  bool aboutColor = false;
+
+  bool contactUsColor = false;
+
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _key,
-      drawer: Drawer(),
+      drawer: Drawer(
+        child: ListView(
+          children: <Widget>[
+            UserAccountsDrawerHeader(
+              accountName: Text(
+                "Tiệm bánh Học Đức",
+                style: TextStyle(color: Colors.black),
+              ),
+              currentAccountPicture: CircleAvatar(
+                backgroundImage: AssetImage("images/hinhbongnoluc.jpg"),
+              ),
+              decoration: BoxDecoration(color: Color(0xfff2f2f2)),
+              accountEmail: Text(
+                "hoclv.04@gmail.com",
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            ListTile(
+              selected: homeColor,
+              onTap: () {
+                setState(() {
+                  homeColor = true;
+                  contactUsColor = false;
+                  cartColor = false;
+                  aboutColor = false;
+                });
+              },
+              leading: Icon(Icons.home),
+              title: Text("Home"),
+            ),
+            ListTile(
+              selected: cartColor,
+              onTap: () {
+                setState(() {
+                  cartColor = true;
+                  contactUsColor = false;
+                  homeColor = false;
+                  aboutColor = false;
+                });
+              },
+              leading: Icon(Icons.shopping_cart),
+              title: Text("Cart"),
+            ),
+            ListTile(
+              selected: aboutColor,
+              onTap: () {
+                setState(() {
+                  aboutColor = true;
+                  contactUsColor = false;
+                  homeColor = false;
+                  cartColor = false;
+                });
+              },
+              leading: Icon(Icons.info),
+              title: Text("About"),
+            ),
+            ListTile(
+              selected: contactUsColor,
+              onTap: () {
+                setState(() {
+                  contactUsColor = true;
+                  cartColor = false;
+                  homeColor = false;
+                  aboutColor = false;
+                });
+              },
+              leading: Icon(Icons.phone),
+              title: Text("Contect Us"),
+            ),
+            ListTile(
+              onTap: () {},
+              leading: Icon(Icons.logout),
+              title: Text("Logout"),
+            ),
+          ],
+        ),
+      ), // ngắn kéo
       appBar: AppBar(
         title: Text("HomePage", style: TextStyle(color: Colors.black)),
         centerTitle: true,
@@ -148,12 +238,11 @@ class HomePage extends StatelessWidget {
                               ),
                             ),
                             GestureDetector(
-                              onTap: (){
+                              onTap: () {
                                 Navigator.of(context).pushReplacement(
                                   MaterialPageRoute(
                                     builder:
-                                        (ctx) => ListProduct(name: "Featured"
-                                    ),
+                                        (ctx) => ListProduct(name: "Featured"),
                                   ),
                                 );
                               },
@@ -172,15 +261,43 @@ class HomePage extends StatelessWidget {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: <Widget>[
-                              SingleProduct(
-                                image: "banhmy01.png",
-                                name: "Men Long T Shirt",
-                                price: 30.0,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder:
+                                          (ctx) => DetailScreen(
+                                            image: "banhmy01.png",
+                                            name: "Men Long T Shirt",
+                                            price: 30.0,
+                                          ),
+                                    ),
+                                  );
+                                },
+                                child: SingleProduct(
+                                  image: "banhmy01.png",
+                                  name: "Men Long T Shirt",
+                                  price: 30.0,
+                                ),
                               ),
-                              SingleProduct(
-                                image: "banhmy01.png",
-                                name: "Women white watch",
-                                price: 33.0,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder:
+                                          (ctx) => DetailScreen(
+                                            image: "banhmy01.png",
+                                            name: "Women white watch",
+                                            price: 33.0,
+                                          ),
+                                    ),
+                                  );
+                                },
+                                child: SingleProduct(
+                                  image: "banhmy01.png",
+                                  name: "Women white watch",
+                                  price: 33.0,
+                                ),
                               ),
                             ],
                           ),
@@ -210,8 +327,7 @@ class HomePage extends StatelessWidget {
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder:
-                                      (ctx) => ListProduct(name: "New Achives"
-                                      ),
+                                      (ctx) => ListProduct(name: "New Achives"),
                                 ),
                               );
                             },
@@ -234,15 +350,43 @@ class HomePage extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: <Widget>[
-                      SingleProduct(
-                        image: "banhmy01.png",
-                        name: "A Men Watch",
-                        price: 30.0,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder:
+                                  (ctx) => DetailScreen(
+                                    image: "banhmy01.png",
+                                    name: "A Men Watch",
+                                    price: 30.0,
+                                  ),
+                            ),
+                          );
+                        },
+                        child: SingleProduct(
+                          image: "banhmy01.png",
+                          name: "A Men Watch",
+                          price: 30.0,
+                        ),
                       ),
-                      SingleProduct(
-                        image: "banhmy01.png",
-                        name: "A Men Pant",
-                        price: 33.0,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder:
+                                  (ctx) => DetailScreen(
+                                    image: "banhmy01.png",
+                                    name: "A Men Pant",
+                                    price: 33.0,
+                                  ),
+                            ),
+                          );
+                        },
+                        child: SingleProduct(
+                          image: "banhmy01.png",
+                          name: "A Men Pant",
+                          price: 33.0,
+                        ),
                       ),
                     ],
                   ),
