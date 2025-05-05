@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class SingleProduct extends StatelessWidget {
-
   final String image;
   final double price;
   final String name;
@@ -24,12 +23,12 @@ class SingleProduct extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: Container(
-                height: 190,
+                height: 170,
                 width: 150,
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     fit: BoxFit.fill,
-                    image: AssetImage("images/$image"),
+                    image: NetworkImage(image),
                   ),
                 ),
               ),

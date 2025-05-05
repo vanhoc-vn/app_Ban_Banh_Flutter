@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 
 class ListProduct extends StatelessWidget {
   final String name;
+  final snapShot;
 
-  ListProduct({required this.name});
+  ListProduct({required this.name, required this.snapShot});
 
   Widget _buildCategoryProduct({required String image, required int color}) {
     return CircleAvatar(
@@ -18,10 +19,39 @@ class ListProduct extends StatelessWidget {
     );
   }
 
-  // const ListProduct({super.key});
-
   @override
   Widget build(BuildContext context) {
+    // Check nếu snapshot không hợp lệ
+    if (snapShot == null || snapShot.data == null || snapShot.data!.docs.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0.0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (ctx) => HomePage()),
+              );
+            },
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.search, color: Colors.black),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.notifications_none, color: Colors.black),
+              onPressed: () {},
+            ),
+          ],
+        ),
+        body: Center(
+          child: Text("Không có sản phẩm"),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -30,8 +60,7 @@ class ListProduct extends StatelessWidget {
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (ctx) => HomePage()),
+              MaterialPageRoute(builder: (ctx) => HomePage()),
             );
           },
         ),
@@ -46,7 +75,6 @@ class ListProduct extends StatelessWidget {
           ),
         ],
       ),
-
       body: Container(
         margin: EdgeInsets.symmetric(horizontal: 20),
         child: ListView(
@@ -65,7 +93,7 @@ class ListProduct extends StatelessWidget {
                             name,
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold, // chu dam
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -76,43 +104,23 @@ class ListProduct extends StatelessWidget {
                 SizedBox(height: 10),
                 Container(
                   height: 700,
-                  child: GridView.count(
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.6,
-                    crossAxisCount: 2,
+                  child: GridView.builder(
+                    itemCount: snapShot.data!.docs.length,
+                    itemBuilder: (ctx, index) {
+                      var product = snapShot.data!.docs[index];
+                      return SingleProduct(
+                        name: product["name"],
+                        price: product["price"].toDouble(),
+                        image: product["image"],
+                      );
+                    },
                     scrollDirection: Axis.vertical,
-                    children: <Widget>[
-                      SingleProduct(
-                        name: "Bánh mỳ Sài Gòn",
-                        price: 30.0,
-                        image: "banhmy01.png",
-                      ),
-                      SingleProduct(
-                        name: "Hình ảnh nỗ lực",
-                        price: 33.0,
-                        image: "hinhbongnoluc.jpg",
-                      ),
-                      SingleProduct(
-                        name: "Mobile Cover",
-                        price: 30.0,
-                        image: "banhmy01.png",
-                      ),
-                      SingleProduct(
-                        name: "Google Mp3",
-                        price: 33.0,
-                        image: "hinhbongnoluc.jpg",
-                      ),
-                      SingleProduct(
-                        name: "Camera",
-                        price: 30.0,
-                        image: "banhmy01.png",
-                      ),
-                      SingleProduct(
-                        name: "Mouse",
-                        price: 33.0,
-                        image: "hinhbongnoluc.jpg",
-                      ),
-                    ],
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.7,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
                   ),
                 ),
               ],
@@ -123,5 +131,3 @@ class ListProduct extends StatelessWidget {
     );
   }
 }
-
-//4:36

@@ -43,7 +43,7 @@ class _DetailScreenState extends State<DetailScreen> {
               decoration: BoxDecoration(
                 image: DecorationImage(
                   fit: BoxFit.fill,
-                  image: AssetImage("images/${widget.image}"),
+                  image: NetworkImage(widget.image),
                 ),
               ),
             ),
@@ -54,7 +54,7 @@ class _DetailScreenState extends State<DetailScreen> {
   }
   Widget _buildNameToDescriptionPart() {
     return Container(
-      height: 100,
+      height: 120,
       child: Row(
         children: <Widget>[
           Column(

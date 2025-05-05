@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerical/screens/checkout.dart';
+
 
 class CartScreen extends StatefulWidget {
   final double price;
@@ -112,7 +114,12 @@ class _CartScreenState extends State<CartScreen> {
             "Continous",
             style: TextStyle(fontSize: 18, color: Colors.white),
           ),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx)=>CheckOut(
+                price: widget.price,
+                name: widget.name,
+                image: widget.image),),);
+          },
         ), // Corrected onPressed syntax
       ),
       appBar: AppBar(
