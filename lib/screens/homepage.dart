@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:e_commerical/provider/categorie_provider.dart';
 import 'package:e_commerical/screens/detailscreen.dart';
 import 'package:e_commerical/screens/listproduct.dart';
 import 'package:e_commerical/widgets/singleproduct.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
-
+import 'package:provider/provider.dart';
 import '../model/product.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,13 +15,43 @@ class HomePage extends StatefulWidget {
 
 Product? menData;
 Product? womenData;
-var mySnapShot;
-var featureSnapShot;
-var newAchivesSnapShot;
 Product? buibData;
 Product? smartPhoneData;
 
+var mySnapShot;
+var featureSnapShot;
+var newAchivesSnapShot;
+
+var tie;
+var shoes;
+var pant;
+var dress;
+var shirt;
+
 class _HomePageState extends State<HomePage> {
+  late CategoryProvider provider;
+
+  bool homeColor = true;
+  bool cartColor = false;
+  bool aboutColor = false;
+  bool contactUsColor = false;
+
+  final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Gọi provider sau khi build lần đầu
+    Future.delayed(Duration.zero, () {
+      final tempProvider = Provider.of<CategoryProvider>(context, listen: false);
+      tempProvider.getShirtData();
+      tempProvider.getDressData();
+      tempProvider.getShoesData();
+      tempProvider.getPantData();
+      tempProvider.getTieData();
+    });
+  }
+
   Widget _buildCategoryProduct({required String image, required int color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -35,81 +66,42 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  bool homeColor = true;
-  bool cartColor = false;
-  bool aboutColor = false;
-  bool contactUsColor = false;
-
   Widget _buildMyDrawer() {
     return Drawer(
       child: ListView(
         children: <Widget>[
           UserAccountsDrawerHeader(
-            accountName: Text(
-              "Tiệm bánh Học Đức",
-              style: TextStyle(color: Colors.black),
-            ),
+            accountName: Text("Tiệm bánh Học Đức", style: TextStyle(color: Colors.black)),
             currentAccountPicture: CircleAvatar(
               backgroundImage: AssetImage("images/hinhbongnoluc.jpg"),
             ),
             decoration: BoxDecoration(color: Color(0xfff2f2f2)),
-            accountEmail: Text(
-              "hoclv.04@gmail.com",
-              style: TextStyle(color: Colors.black),
-            ),
+            accountEmail: Text("hoclv.04@gmail.com", style: TextStyle(color: Colors.black)),
           ),
-          ListTile(
-            selected: homeColor,
-            onTap: () {
-              setState(() {
-                homeColor = true;
-                contactUsColor = false;
-                cartColor = false;
-                aboutColor = false;
-              });
-            },
-            leading: Icon(Icons.home),
-            title: Text("Home"),
-          ),
-          ListTile(
-            selected: cartColor,
-            onTap: () {
-              setState(() {
-                cartColor = true;
-                contactUsColor = false;
-                homeColor = false;
-                aboutColor = false;
-              });
-            },
-            leading: Icon(Icons.shopping_cart),
-            title: Text("Cart"),
-          ),
-          ListTile(
-            selected: aboutColor,
-            onTap: () {
-              setState(() {
-                aboutColor = true;
-                contactUsColor = false;
-                homeColor = false;
-                cartColor = false;
-              });
-            },
-            leading: Icon(Icons.info),
-            title: Text("About"),
-          ),
-          ListTile(
-            selected: contactUsColor,
-            onTap: () {
-              setState(() {
-                contactUsColor = true;
-                cartColor = false;
-                homeColor = false;
-                aboutColor = false;
-              });
-            },
-            leading: Icon(Icons.phone),
-            title: Text("Contect Us"),
-          ),
+          _buildDrawerItem("Home", Icons.home, homeColor, () {
+            setState(() {
+              homeColor = true;
+              cartColor = aboutColor = contactUsColor = false;
+            });
+          }),
+          _buildDrawerItem("Cart", Icons.shopping_cart, cartColor, () {
+            setState(() {
+              cartColor = true;
+              homeColor = aboutColor = contactUsColor = false;
+            });
+          }),
+          _buildDrawerItem("About", Icons.info, aboutColor, () {
+            setState(() {
+              aboutColor = true;
+              homeColor = cartColor = contactUsColor = false;
+            });
+          }),
+          _buildDrawerItem("Contact Us", Icons.phone, contactUsColor, () {
+            setState(() {
+              contactUsColor = true;
+              homeColor = cartColor = aboutColor = false;
+            });
+          }),
           ListTile(
             onTap: () {},
             leading: Icon(Icons.logout),
@@ -117,6 +109,15 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+    );
+  }
+
+  ListTile _buildDrawerItem(String title, IconData icon, bool selected, VoidCallback onTap) {
+    return ListTile(
+      selected: selected,
+      onTap: onTap,
+      leading: Icon(icon),
+      title: Text(title),
     );
   }
 
@@ -139,6 +140,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCategory() {
+    List<Product> shirts = provider.getShirtList;
+    List<Product> dresses = provider.getDressList;
+    List<Product> shoesList = provider.getshoesList;
+    List<Product> pants = provider.getPantList;
+    List<Product> ties = provider.getTieList;
+
     return Column(
       children: <Widget>[
         Container(
@@ -146,10 +153,7 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text(
-                "Categorie",
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-              ),
+              Text("Categorie", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -159,11 +163,11 @@ class _HomePageState extends State<HomePage> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: <Widget>[
-              _buildCategoryProduct(image: "icon_ao.png", color: 0xff33dcfd),
-              _buildCategoryProduct(image: "icon_ao.png", color: 0xfff38cdd),
-              _buildCategoryProduct(image: "icon_ao.png", color: 0xff4ff2af),
-              _buildCategoryProduct(image: "icon_ao.png", color: 0xff74acf7),
-              _buildCategoryProduct(image: "icon_ao.png", color: 0xfffc6c8d),
+              _buildCategoryItem("Dress", dresses),
+              _buildCategoryItem("Shirt", shirts),
+              _buildCategoryItem("Shoes", shoesList),
+              _buildCategoryItem("Pant", pants),
+              _buildCategoryItem("Tie", ties),
             ],
           ),
         ),
@@ -171,295 +175,155 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNewAchives() {
+  Widget _buildCategoryItem(String name, List<Product> list) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (ctx) => ListProduct(name: name, snapShot: list),
+        ));
+      },
+      child: _buildCategoryProduct(image: "icon_ao.png", color: 0xff33dcfd),
+    );
+  }
+
+  Widget _buildProductSection(String title, dynamic snapshotData, List<Product> products, List<Product> Function()? fallbackData) {
+    if (products.isEmpty && fallbackData != null) products = fallbackData();
+
     return Column(
       children: <Widget>[
-        Container(
-          height: 50,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(
-                    "New Achives",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder:
-                              (ctx) => ListProduct(
-                                name: "New Achives",
-                                snapShot: newAchivesSnapShot,
-                              ),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      "View more",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (ctx) => ListProduct(name: title, snapShot: snapshotData),
+                ));
+              },
+              child: Text("View more", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+          ],
         ),
         SizedBox(height: 10),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: <Widget>[
-              GestureDetector(
+            children: products.map((product) {
+              return GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder:
-                          (ctx) => DetailScreen(
-                            image: buibData!.image,
-                            name: buibData!.name,
-                            price: buibData!.price,
-                          ),
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (ctx) => DetailScreen(
+                      image: product.image,
+                      name: product.name,
+                      price: product.price,
                     ),
-                  );
+                  ));
                 },
                 child: SingleProduct(
-                  image: buibData!.image,
-                  name: buibData!.name,
-                  price: buibData!.price,
+                  image: product.image,
+                  name: product.name,
+                  price: product.price,
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder:
-                          (ctx) => DetailScreen(
-                            image: smartPhoneData!.image,
-                            name: smartPhoneData!.name,
-                            price: smartPhoneData!.price,
-                          ),
-                    ),
-                  );
-                },
-                child: SingleProduct(
-                  image: smartPhoneData!.image,
-                  name: smartPhoneData!.name,
-                  price: smartPhoneData!.price,
-                ),
-              ),
-            ],
+              );
+            }).toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildFeatured() {
-    return Column(
-      children: <Widget>[
-        Column(
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Featured",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder:
-                            (ctx) => ListProduct(
-                              name: "Featured",
-                              snapShot: featureSnapShot,
-                            ),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "View more",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder:
-                              (ctx) => DetailScreen(
-                                image: menData!.image,
-                                name: menData!.name,
-                                price: menData!.price,
-                              ),
-                        ),
-                      );
-                    },
-                    child: SingleProduct(
-                      image: menData!.image,
-                      name: menData!.name,
-                      price: menData!.price,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder:
-                              (ctx) => DetailScreen(
-                                image: womenData!.image,
-                                name: womenData!.name,
-                                price: womenData!.price,
-                              ),
-                        ),
-                      );
-                    },
-                    child: SingleProduct(
-                      image: womenData!.image,
-                      name: womenData!.name,
-                      price: womenData!.price,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
-
   @override
   Widget build(BuildContext context) {
+    provider = Provider.of<CategoryProvider>(context);
+
     return Scaffold(
       key: _key,
       drawer: _buildMyDrawer(),
       appBar: AppBar(
         title: Text("HomePage", style: TextStyle(color: Colors.black)),
         centerTitle: true,
-        elevation: 0.0,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: Icon(Icons.menu, color: Colors.black),
-          onPressed: () {
-            _key.currentState?.openDrawer();
-          },
+          onPressed: () => _key.currentState?.openDrawer(),
         ),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {},
-          ),
+          IconButton(icon: Icon(Icons.search, color: Colors.black), onPressed: () {}),
+          IconButton(icon: Icon(Icons.notifications_none, color: Colors.black), onPressed: () {}),
         ],
       ),
       body: FutureBuilder(
-        future:
-            FirebaseFirestore.instance
+        future: FirebaseFirestore.instance
+            .collection("category")
+            .doc("ZITKuL6SpEr9vvWPijS7")
+            .collection("shirt")
+            .get(),
+        builder: (context, shirtSnapShot) {
+          if (shirtSnapShot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          shirt = shirtSnapShot;
+
+          return FutureBuilder(
+            future: FirebaseFirestore.instance
                 .collection("products")
                 .doc("qtZQegLgnUOMbI9WRusO")
                 .collection("featureproduct")
                 .get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text("Đã xảy ra lỗi khi tải dữ liệu"));
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text("Không có sản phẩm"));
-          }
-          // Lấy dữ liệu sản phẩm
-          final docs = snapshot.data!.docs;
-          mySnapShot = snapshot;
-          featureSnapShot = snapshot;
-          menData = Product(
-            image: docs[0]["image"],
-            name: docs[0]["name"],
-            price: docs[0]["price"].toDouble(),
-          );
-          womenData = Product(
-            image: docs[1]["image"],
-            name: docs[1]["name"],
-            price: docs[1]["price"].toDouble(),
-          );
-          return FutureBuilder(
-            future:
-                FirebaseFirestore.instance
-                    .collection("products")
-                    .doc("qtZQegLgnUOMbI9WRusO")
-                    .collection("newachives")
-                    .get(),
-            builder: (context, snapShot) {
-              if (snapShot.connectionState == ConnectionState.waiting) {
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
                 return Center(child: CircularProgressIndicator());
-              }
-              if (snapShot.hasError) {
-                return Center(child: Text("Đã xảy ra lỗi khi tải dữ liệu"));
-              }
-              if (!snapShot.hasData || snapShot.data!.docs.isEmpty) {
-                return Center(child: Text("Không có sản phẩm"));
-              }
-              // Lấy dữ liệu sản phẩm
-              final docs = snapShot.data!.docs;
-              newAchivesSnapShot = snapShot;
 
-              buibData = Product(
+              final docs = snapshot.data!.docs;
+              menData = Product(
                 image: docs[0]["image"],
                 name: docs[0]["name"],
                 price: docs[0]["price"].toDouble(),
               );
-
-              smartPhoneData = Product(
-                image: docs[2]["image"],
-                name: docs[2]["name"],
-                price: docs[2]["price"].toDouble(),
+              womenData = Product(
+                image: docs[1]["image"],
+                name: docs[1]["name"],
+                price: docs[1]["price"].toDouble(),
               );
+              featureSnapShot = snapshot;
 
-              return Container(
-                height: double.infinity,
-                width: double.infinity,
-                margin: EdgeInsets.symmetric(horizontal: 20),
-                child: ListView(
-                  shrinkWrap: true,
-                  physics: BouncingScrollPhysics(),
-                  children: <Widget>[
-                    Container(
-                      width: double.infinity,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          _buildImageSlider(),
-                          _buildCategory(),
-                          SizedBox(height: 20),
-                          _buildFeatured(),
-                          _buildNewAchives(),
-                        ],
-                      ),
+              return FutureBuilder(
+                future: FirebaseFirestore.instance
+                    .collection("products")
+                    .doc("qtZQegLgnUOMbI9WRusO")
+                    .collection("newachives")
+                    .get(),
+                builder: (context, snapShot) {
+                  if (snapShot.connectionState == ConnectionState.waiting)
+                    return Center(child: CircularProgressIndicator());
+
+                  final docs = snapShot.data!.docs;
+                  buibData = Product(
+                    image: docs[0]["image"],
+                    name: docs[0]["name"],
+                    price: docs[0]["price"].toDouble(),
+                  );
+                  smartPhoneData = Product(
+                    image: docs[2]["image"],
+                    name: docs[2]["name"],
+                    price: docs[2]["price"].toDouble(),
+                  );
+                  newAchivesSnapShot = snapShot;
+
+                  return Container(
+                    margin: EdgeInsets.symmetric(horizontal: 20),
+                    child: ListView(
+                      children: <Widget>[
+                        _buildImageSlider(),
+                        _buildCategory(),
+                        SizedBox(height: 20),
+                        _buildProductSection("Featured", featureSnapShot, [menData!, womenData!], null),
+                        _buildProductSection("New Achives", newAchivesSnapShot, [buibData!, smartPhoneData!], null),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               );
             },
           );

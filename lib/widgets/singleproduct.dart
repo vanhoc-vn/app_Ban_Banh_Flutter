@@ -16,15 +16,15 @@ class SingleProduct extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Container(
-        height: 250,
+        height: 300,
         width: 180,
         child: Column(
           children: <Widget>[
             Container(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: Container(
-                height: 170,
-                width: 150,
+                height: 200,
+                width: 180,
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     fit: BoxFit.fill,
@@ -33,6 +33,7 @@ class SingleProduct extends StatelessWidget {
                 ),
               ),
             ),
+            SizedBox(height: 20),
             Text(
               "\$ ${price.toString()}",
               style: TextStyle(
@@ -41,7 +42,9 @@ class SingleProduct extends StatelessWidget {
                 color: Color(0xff9b96d6),
               ),
             ),
-            Text(name, style: TextStyle(fontSize: 17)),
+            Container(
+              height: 200,
+                child: Text(name, style: TextStyle(fontSize: 17))),
           ],
         ),
       ),

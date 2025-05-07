@@ -1,10 +1,11 @@
+import 'package:e_commerical/model/product.dart';
 import 'package:e_commerical/screens/homepage.dart';
 import 'package:e_commerical/widgets/singleproduct.dart';
 import 'package:flutter/material.dart';
 
 class ListProduct extends StatelessWidget {
   final String name;
-  final snapShot;
+  final List<Product> snapShot;
 
   ListProduct({required this.name, required this.snapShot});
 
@@ -21,48 +22,12 @@ class ListProduct extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check nếu snapshot không hợp lệ
-    if (snapShot == null || snapShot.data == null || snapShot.data!.docs.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0.0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (ctx) => HomePage()),
-              );
-            },
-          ),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.search, color: Colors.black),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: Icon(Icons.notifications_none, color: Colors.black),
-              onPressed: () {},
-            ),
-          ],
-        ),
-        body: Center(
-          child: Text("Không có sản phẩm"),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0.0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (ctx) => HomePage()),
-            );
-          },
+        iconTheme: IconThemeData(
+          color: Colors.black,
         ),
         actions: <Widget>[
           IconButton(
@@ -104,23 +69,17 @@ class ListProduct extends StatelessWidget {
                 SizedBox(height: 10),
                 Container(
                   height: 700,
-                  child: GridView.builder(
-                    itemCount: snapShot.data!.docs.length,
-                    itemBuilder: (ctx, index) {
-                      var product = snapShot.data!.docs[index];
-                      return SingleProduct(
-                        name: product["name"],
-                        price: product["price"].toDouble(),
-                        image: product["image"],
-                      );
-                    },
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
                     scrollDirection: Axis.vertical,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.7,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                    ),
+                    children: snapShot
+                        .map((e) => SingleProduct(
+                      image: e.image,
+                      name: e.name,
+                      price: e.price,
+                    ))
+                        .toList(),
                   ),
                 ),
               ],
