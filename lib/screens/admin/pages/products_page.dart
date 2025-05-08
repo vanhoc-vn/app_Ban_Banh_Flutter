@@ -72,7 +72,7 @@ class _ProductsPageState extends State<ProductsPage>
             children: [
               const Text(
                 'Quản lý sản phẩm',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               ElevatedButton.icon(
                 onPressed:

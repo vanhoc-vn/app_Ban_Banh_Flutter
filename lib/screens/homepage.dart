@@ -42,20 +42,18 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+    categoryProvider.getShirtData();
+    categoryProvider.getDressData();
+    categoryProvider.getShoesData();
+    categoryProvider.getPantData();
+    categoryProvider.getTieData();
+    productProvider = Provider.of<ProductProvider>(context, listen: false);
+    productProvider.getNewAchiveData();
+    productProvider.getFutureData();
+    productProvider.getHomeFeatureData();
+    productProvider.getHomeAchiveData();
     super.initState();
-    Future.delayed(Duration.zero, () {
-      categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
-      categoryProvider.getShirtData();
-      categoryProvider.getDressData();
-      categoryProvider.getShoesData();
-      categoryProvider.getPantData();
-      categoryProvider.getTieData();
-      productProvider = Provider.of<ProductProvider>(context, listen: false);
-      productProvider.getNewAchiveData();
-      productProvider.getFutureData();
-      productProvider.getHomeFeatureData();
-      productProvider.getHomeAchiveData();
-    });
   }
 
   Widget _buildCategoryProduct({required String image, required int color}) {

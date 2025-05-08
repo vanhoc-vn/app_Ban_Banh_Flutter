@@ -14,19 +14,12 @@ class AdminLayout extends StatefulWidget {
 
 class _AdminLayoutState extends State<AdminLayout> {
   int _selectedIndex = 0;
+  bool _isSidebarExpanded = true;
 
-  final List<_MenuItem> _menuItems = [
-    _MenuItem(
-      title: 'Orders',
-      icon: Icons.shopping_cart,
-      page: const OrdersPage(),
-    ),
-    _MenuItem(title: 'Products', icon: Icons.cake, page: const ProductsPage()),
-    _MenuItem(
-      title: 'Customers',
-      icon: Icons.people,
-      page: const CustomersPage(),
-    ),
+  final List<Widget> _pages = [
+    const ProductsPage(),
+    const OrdersPage(),
+    const CustomersPage(),
   ];
 
   Future<void> _handleLogout() async {
@@ -53,201 +46,265 @@ class _AdminLayoutState extends State<AdminLayout> {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Kiểm tra nếu là mobile (width < 600)
+        if (constraints.maxWidth < 600) {
+          return _buildMobileLayout();
+        }
+        // Nếu là tablet hoặc desktop
+        return _buildDesktopLayout();
+      },
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Hoang Admin'),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(icon: const Icon(Icons.logout), onPressed: _handleLogout),
+        ],
+      ),
+      drawer: Drawer(
+        child: Container(
+          color: Colors.deepPurple,
+          child: Column(
+            children: [
+              // Drawer Header
+              DrawerHeader(
+                decoration: const BoxDecoration(color: Colors.deepPurple),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 40,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.shopping_bag,
+                          color: Colors.white,
+                          size: 30,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Hoang Admin',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Menu Items
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildDrawerItem(
+                      icon: Icons.inventory_2,
+                      title: 'Sản phẩm',
+                      index: 0,
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.shopping_cart,
+                      title: 'Đơn hàng',
+                      index: 1,
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.people,
+                      title: 'Khách hàng',
+                      index: 2,
+                    ),
+                    const Divider(color: Colors.white24),
+                    // ListTile(
+                    //   leading: const Icon(Icons.logout, color: Colors.white70),
+                    //   title: const Text(
+                    //     'Đăng xuất',
+                    //     style: TextStyle(color: Colors.white70),
+                    //   ),
+                    //   onTap: _handleLogout,
+                    // ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: _pages[_selectedIndex],
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required int index,
+  }) {
+    final isSelected = _selectedIndex == index;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? Colors.white : Colors.white70),
+      title: Text(
+        title,
+        style: TextStyle(color: isSelected ? Colors.white : Colors.white70),
+      ),
+      selected: isSelected,
+      onTap: () {
+        setState(() {
+          _selectedIndex = index;
+        });
+        Navigator.pop(context); // Đóng drawer sau khi chọn
+      },
+    );
+  }
+
+  Widget _buildDesktopLayout() {
     return Scaffold(
       body: Row(
         children: [
-          // Left Sidebar
-          Container(
-            width: 250,
-            color: Colors.deepPurple,
+          // Sidebar
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: _isSidebarExpanded ? 250 : 70,
+            child: _buildSidebar(),
+          ),
+          // Main content
+          Expanded(
             child: Column(
               children: [
-                // Admin Header
-                Padding(
-                  padding: const EdgeInsets.all(20),
+                // Top bar
+                Container(
+                  height: 60,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                      ),
+                    ],
+                  ),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white,
-                        radius: 25,
-                        child: ClipOval(
-                          child: Image.asset(
-                            "images/ava.jpg",
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                          ),
+                      IconButton(
+                        icon: Icon(
+                          _isSidebarExpanded
+                              ? Icons.chevron_left
+                              : Icons.chevron_right,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _isSidebarExpanded = !_isSidebarExpanded;
+                          });
+                        },
                       ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Text(
-                          'Admin Panel',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      const Spacer(),
+                      // Thêm nút đăng xuất vào top bar
+                      IconButton(
+                        icon: const Icon(Icons.logout),
+                        onPressed: _handleLogout,
                       ),
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white24),
-                // Menu Items
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _menuItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _menuItems[index];
-                      final isSelected = _selectedIndex == index;
-                      return ListTile(
-                        leading: Icon(
-                          item.icon,
-                          color: isSelected ? Colors.white : Colors.white70,
-                        ),
-                        title: Text(
-                          item.title,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontWeight:
-                                isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                          ),
-                        ),
-                        selected: isSelected,
-                        selectedTileColor: Colors.white.withOpacity(0.1),
-                        onTap: () {
-                          setState(() {
-                            _selectedIndex = index;
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-                // Logout Button
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.red),
-                      title: const Text(
-                        'Đăng xuất',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: Row(
-                                  children: [
-                                    const Icon(Icons.logout, color: Colors.red),
-                                    const SizedBox(width: 10),
-                                    const Text('Xác nhận đăng xuất'),
-                                  ],
-                                ),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.warning_amber_rounded,
-                                      color: Colors.orange,
-                                      size: 48,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    const Text(
-                                      'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản admin?',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text(
-                                      'Hủy',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      Navigator.pop(context);
-                                      try {
-                                        await _handleLogout();
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Đăng xuất thành công',
-                                              ),
-                                              backgroundColor: Colors.green,
-                                            ),
-                                          );
-                                        }
-                                      } catch (e) {
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Lỗi đăng xuất: $e',
-                                              ),
-                                              backgroundColor: Colors.red,
-                                            ),
-                                          );
-                                        }
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20,
-                                        vertical: 12,
-                                      ),
-                                    ),
-                                    child: const Text('Đăng xuất'),
-                                  ),
-                                ],
-                              ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
+                // Main content
+                Expanded(child: Material(child: _pages[_selectedIndex])),
               ],
-            ),
-          ),
-          // Main Content
-          Expanded(
-            child: Container(
-              color: Colors.grey[100],
-              child: _menuItems[_selectedIndex].page,
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class _MenuItem {
-  final String title;
-  final IconData icon;
-  final Widget page;
+  Widget _buildSidebar() {
+    final List<Map<String, dynamic>> menuItems = [
+      {'icon': Icons.inventory_2, 'title': 'Sản phẩm', 'index': 0},
+      {'icon': Icons.shopping_cart, 'title': 'Đơn hàng', 'index': 1},
+      {'icon': Icons.people, 'title': 'Khách hàng', 'index': 2},
+    ];
 
-  _MenuItem({required this.title, required this.icon, required this.page});
+    return Container(
+      color: Colors.deepPurple,
+      child: Column(
+        children: [
+          // Logo và tên app
+          Container(
+            height: 60,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 40,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.shopping_bag,
+                      color: Colors.white,
+                      size: 30,
+                    );
+                  },
+                ),
+                if (_isSidebarExpanded) ...[
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Admin Panel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const Divider(color: Colors.white24),
+          // Menu items
+          Expanded(
+            child: ListView.builder(
+              itemCount: menuItems.length,
+              itemBuilder: (context, index) {
+                final item = menuItems[index];
+                final isSelected = _selectedIndex == item['index'];
+                return ListTile(
+                  leading: Icon(
+                    item['icon'],
+                    color: isSelected ? Colors.white : Colors.white70,
+                  ),
+                  title:
+                      _isSidebarExpanded
+                          ? Text(
+                            item['title'],
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.white70,
+                            ),
+                          )
+                          : null,
+                  selected: isSelected,
+                  onTap: () {
+                    setState(() {
+                      _selectedIndex = item['index'];
+                    });
+                    // Đóng drawer nếu đang ở mobile
+                    if (MediaQuery.of(context).size.width < 600) {
+                      Navigator.pop(context);
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
