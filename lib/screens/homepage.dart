@@ -6,6 +6,7 @@ import 'package:e_commerical/widgets/singleproduct.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:provider/provider.dart';
+
 import '../model/product.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,42 +14,40 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-Product? menData;
-Product? womenData;
-Product? buibData;
-Product? smartPhoneData;
-
-var mySnapShot;
-var featureSnapShot;
-var newAchivesSnapShot;
-
-var tie;
-var shoes;
-var pant;
-var dress;
-var shirt;
-
 class _HomePageState extends State<HomePage> {
   late CategoryProvider provider;
-
   bool homeColor = true;
   bool cartColor = false;
   bool aboutColor = false;
   bool contactUsColor = false;
+
+  Product? menData;
+  Product? womenData;
+  Product? buibData;
+  Product? smartPhoneData;
+
+  QuerySnapshot? shirtSnapShot;
+  QuerySnapshot? featureSnapShot;
+  QuerySnapshot? newAchivesSnapShot;
+
+  List<Product> shirts = [];
+  List<Product> dress = [];
+  List<Product> shoes = [];
+  List<Product> pant = [];
+  List<Product> tie = [];
 
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
-    // Gọi provider sau khi build lần đầu
     Future.delayed(Duration.zero, () {
-      final tempProvider = Provider.of<CategoryProvider>(context, listen: false);
-      tempProvider.getShirtData();
-      tempProvider.getDressData();
-      tempProvider.getShoesData();
-      tempProvider.getPantData();
-      tempProvider.getTieData();
+      provider = Provider.of<CategoryProvider>(context, listen: false);
+      provider.getShirtData();
+      provider.getDressData();
+      provider.getShoesData();
+      provider.getPantData();
+      provider.getTieData();
     });
   }
 
@@ -72,36 +71,62 @@ class _HomePageState extends State<HomePage> {
         children: <Widget>[
           UserAccountsDrawerHeader(
             accountName: Text("Tiệm bánh Học Đức", style: TextStyle(color: Colors.black)),
-            currentAccountPicture: CircleAvatar(
-              backgroundImage: AssetImage("images/hinhbongnoluc.jpg"),
-            ),
+            currentAccountPicture: CircleAvatar(backgroundImage: AssetImage("images/hinhbongnoluc.jpg")),
             decoration: BoxDecoration(color: Color(0xfff2f2f2)),
             accountEmail: Text("hoclv.04@gmail.com", style: TextStyle(color: Colors.black)),
           ),
-          _buildDrawerItem("Home", Icons.home, homeColor, () {
-            setState(() {
-              homeColor = true;
-              cartColor = aboutColor = contactUsColor = false;
-            });
-          }),
-          _buildDrawerItem("Cart", Icons.shopping_cart, cartColor, () {
-            setState(() {
-              cartColor = true;
-              homeColor = aboutColor = contactUsColor = false;
-            });
-          }),
-          _buildDrawerItem("About", Icons.info, aboutColor, () {
-            setState(() {
-              aboutColor = true;
-              homeColor = cartColor = contactUsColor = false;
-            });
-          }),
-          _buildDrawerItem("Contact Us", Icons.phone, contactUsColor, () {
-            setState(() {
-              contactUsColor = true;
-              homeColor = cartColor = aboutColor = false;
-            });
-          }),
+          ListTile(
+            selected: homeColor,
+            onTap: () {
+              setState(() {
+                homeColor = true;
+                contactUsColor = false;
+                cartColor = false;
+                aboutColor = false;
+              });
+            },
+            leading: Icon(Icons.home),
+            title: Text("Home"),
+          ),
+          ListTile(
+            selected: cartColor,
+            onTap: () {
+              setState(() {
+                cartColor = true;
+                contactUsColor = false;
+                homeColor = false;
+                aboutColor = false;
+              });
+            },
+            leading: Icon(Icons.shopping_cart),
+            title: Text("Cart"),
+          ),
+          ListTile(
+            selected: aboutColor,
+            onTap: () {
+              setState(() {
+                aboutColor = true;
+                contactUsColor = false;
+                homeColor = false;
+                cartColor = false;
+              });
+            },
+            leading: Icon(Icons.info),
+            title: Text("About"),
+          ),
+          ListTile(
+            selected: contactUsColor,
+            onTap: () {
+              setState(() {
+                contactUsColor = true;
+                cartColor = false;
+                homeColor = false;
+                aboutColor = false;
+              });
+            },
+            leading: Icon(Icons.phone),
+            title: Text("Contact Us"),
+          ),
           ListTile(
             onTap: () {},
             leading: Icon(Icons.logout),
@@ -109,15 +134,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
-
-  ListTile _buildDrawerItem(String title, IconData icon, bool selected, VoidCallback onTap) {
-    return ListTile(
-      selected: selected,
-      onTap: onTap,
-      leading: Icon(icon),
-      title: Text(title),
     );
   }
 
@@ -140,11 +156,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCategory() {
-    List<Product> shirts = provider.getShirtList;
-    List<Product> dresses = provider.getDressList;
-    List<Product> shoesList = provider.getshoesList;
-    List<Product> pants = provider.getPantList;
-    List<Product> ties = provider.getTieList;
+    final provider = Provider.of<CategoryProvider>(context);
+    shirts = provider.getShirtList;
+    dress = provider.getDressList;
+    shoes = provider.getshoesList;
+    pant = provider.getPantList;
+    tie = provider.getTieList;
 
     return Column(
       children: <Widget>[
@@ -163,11 +180,11 @@ class _HomePageState extends State<HomePage> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: <Widget>[
-              _buildCategoryItem("Dress", dresses),
-              _buildCategoryItem("Shirt", shirts),
-              _buildCategoryItem("Shoes", shoesList),
-              _buildCategoryItem("Pant", pants),
-              _buildCategoryItem("Tie", ties),
+              _categoryItem("Dress", dress),
+              _categoryItem("Shirt", shirts),
+              _categoryItem("Shoes", shoes),
+              _categoryItem("Pant", pant),
+              _categoryItem("Tie", tie),
             ],
           ),
         ),
@@ -175,80 +192,131 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCategoryItem(String name, List<Product> list) {
+  Widget _categoryItem(String name, List<Product> data) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (ctx) => ListProduct(name: name, snapShot: list),
+          builder: (ctx) => ListProduct(name: name, snapShot: data),
         ));
       },
       child: _buildCategoryProduct(image: "icon_ao.png", color: 0xff33dcfd),
     );
   }
 
-  Widget _buildProductSection(String title, dynamic snapshotData, List<Product> products, List<Product> Function()? fallbackData) {
-    if (products.isEmpty && fallbackData != null) products = fallbackData();
+  Widget _buildNewAchives() {
+    if (buibData == null || smartPhoneData == null) return SizedBox.shrink();
 
     return Column(
       children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (ctx) => ListProduct(name: title, snapShot: snapshotData),
-                ));
-              },
-              child: Text("View more", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-          ],
+        Container(
+          height: 50,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("New Achives", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  // GestureDetector(
+                  //   onTap: () {
+                  //     Navigator.of(context).pushReplacement(
+                  //       MaterialPageRoute(
+                  //         builder: (ctx) => ListProduct(name: "New Achives", snapShot: newAchivesSnapShot),
+                  //       ),
+                  //     );
+                  //   },
+                  //   child: Text("View more", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  // ),
+                ],
+              ),
+            ],
+          ),
         ),
         SizedBox(height: 10),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: products.map((product) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (ctx) => DetailScreen(
-                      image: product.image,
-                      name: product.name,
-                      price: product.price,
-                    ),
-                  ));
-                },
-                child: SingleProduct(
-                  image: product.image,
-                  name: product.name,
-                  price: product.price,
-                ),
-              );
-            }).toList(),
+            children: [
+              _productItem(buibData!),
+              _productItem(smartPhoneData!),
+            ],
           ),
         ),
       ],
     );
   }
 
+  Widget _buildFeatured() {
+    if (menData == null || womenData == null) return SizedBox.shrink();
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Featured", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            // GestureDetector(
+            //   onTap: () {
+            //     Navigator.of(context).pushReplacement(
+            //       MaterialPageRoute(
+            //         builder: (ctx) => ListProduct(name: "Featured", snapShot: featureSnapShot),
+            //       ),
+            //     );
+            //   },
+            //   child: Text("View more", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            // ),
+          ],
+        ),
+        SizedBox(height: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _productItem(menData!),
+              _productItem(womenData!),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _productItem(Product product) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (ctx) => DetailScreen(
+              image: product.image,
+              name: product.name,
+              price: product.price,
+            ),
+          ),
+        );
+      },
+      child: SingleProduct(
+        image: product.image,
+        name: product.name,
+        price: product.price,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    provider = Provider.of<CategoryProvider>(context);
-
     return Scaffold(
       key: _key,
       drawer: _buildMyDrawer(),
       appBar: AppBar(
         title: Text("HomePage", style: TextStyle(color: Colors.black)),
         centerTitle: true,
+        elevation: 0.0,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: Icon(Icons.menu, color: Colors.black),
           onPressed: () => _key.currentState?.openDrawer(),
         ),
-        actions: <Widget>[
+        actions: [
           IconButton(icon: Icon(Icons.search, color: Colors.black), onPressed: () {}),
           IconButton(icon: Icon(Icons.notifications_none, color: Colors.black), onPressed: () {}),
         ],
@@ -259,11 +327,9 @@ class _HomePageState extends State<HomePage> {
             .doc("ZITKuL6SpEr9vvWPijS7")
             .collection("shirt")
             .get(),
-        builder: (context, shirtSnapShot) {
-          if (shirtSnapShot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          shirt = shirtSnapShot;
+        builder: (context, shirtSnap) {
+          if (shirtSnap.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+          shirtSnapShot = shirtSnap.data;
 
           return FutureBuilder(
             future: FirebaseFirestore.instance
@@ -272,10 +338,13 @@ class _HomePageState extends State<HomePage> {
                 .collection("featureproduct")
                 .get(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting)
-                return Center(child: CircularProgressIndicator());
+              if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+              if (snapshot.hasError) return Center(child: Text("Đã xảy ra lỗi khi tải dữ liệu"));
 
               final docs = snapshot.data!.docs;
+              if (docs.length < 2) return Center(child: Text("Không đủ dữ liệu để hiển thị Featured"));
+
+              featureSnapShot = snapshot.data;
               menData = Product(
                 image: docs[0]["image"],
                 name: docs[0]["name"],
@@ -286,7 +355,6 @@ class _HomePageState extends State<HomePage> {
                 name: docs[1]["name"],
                 price: docs[1]["price"].toDouble(),
               );
-              featureSnapShot = snapshot;
 
               return FutureBuilder(
                 future: FirebaseFirestore.instance
@@ -297,8 +365,12 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, snapShot) {
                   if (snapShot.connectionState == ConnectionState.waiting)
                     return Center(child: CircularProgressIndicator());
+                  if (snapShot.hasError) return Center(child: Text("Đã xảy ra lỗi khi tải dữ liệu"));
 
                   final docs = snapShot.data!.docs;
+                  if (docs.length < 3) return Center(child: Text("Không đủ dữ liệu để hiển thị New Achives"));
+
+                  newAchivesSnapShot = snapShot.data;
                   buibData = Product(
                     image: docs[0]["image"],
                     name: docs[0]["name"],
@@ -309,17 +381,20 @@ class _HomePageState extends State<HomePage> {
                     name: docs[2]["name"],
                     price: docs[2]["price"].toDouble(),
                   );
-                  newAchivesSnapShot = snapShot;
 
                   return Container(
+                    height: double.infinity,
+                    width: double.infinity,
                     margin: EdgeInsets.symmetric(horizontal: 20),
                     child: ListView(
-                      children: <Widget>[
+                      shrinkWrap: true,
+                      physics: BouncingScrollPhysics(),
+                      children: [
                         _buildImageSlider(),
                         _buildCategory(),
                         SizedBox(height: 20),
-                        _buildProductSection("Featured", featureSnapShot, [menData!, womenData!], null),
-                        _buildProductSection("New Achives", newAchivesSnapShot, [buibData!, smartPhoneData!], null),
+                        _buildFeatured(),
+                        _buildNewAchives(),
                       ],
                     ),
                   );

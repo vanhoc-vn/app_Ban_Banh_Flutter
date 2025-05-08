@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 
 class ListProduct extends StatelessWidget {
   final String name;
-  final List<Product> snapShot;
+ // final List<Product> snapShot;
+ final List<Product> snapShot;
 
   ListProduct({required this.name, required this.snapShot});
 

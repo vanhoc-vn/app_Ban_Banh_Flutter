@@ -19,11 +19,12 @@ class SingleProduct extends StatelessWidget {
         height: 300,
         width: 180,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Đẩy nội dung xuống
           children: <Widget>[
             Container(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: Container(
-                height: 200,
+                height: 180,
                 width: 180,
                 decoration: BoxDecoration(
                   image: DecorationImage(
@@ -33,18 +34,22 @@ class SingleProduct extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 20),
-            Text(
-              "\$ ${price.toString()}",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 17,
-                color: Color(0xff9b96d6),
-              ),
+            Column(
+              children: [
+                Text(
+                  "\$ ${price.toString()}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    color: Color(0xff9b96d6),
+                  ),
+                ),
+                Container(
+                  height: 68,
+                  child: Text(name, style: TextStyle(fontSize: 17)),
+                ),
+              ],
             ),
-            Container(
-              height: 200,
-                child: Text(name, style: TextStyle(fontSize: 17))),
           ],
         ),
       ),
