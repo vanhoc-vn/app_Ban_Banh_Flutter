@@ -1,3 +1,4 @@
+import 'package:e_commerical/screens/admin/layout/admin_layout.dart';
 import 'package:e_commerical/screens/signup.dart';
 import 'package:e_commerical/widgets/changescreen.dart';
 import 'package:e_commerical/widgets/mybutton.dart';
@@ -107,16 +108,33 @@ class _LoginState extends State<Login> {
       try {
         UserCredential result = await FirebaseAuth.instance
             .signInWithEmailAndPassword(
-            email: email!.trim(), password: password!.trim());
-        print(result.user!.uid);
+              email: email!.trim(),
+              password: password!.trim(),
+            );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Đăng nhập thành công!")),
-        );
+        // Check if the user is admin
+        if (email!.trim() == 'admin@gmail.com') {
+          // Navigate to AdminLayout
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminLayout()),
+            );
+          }
+        } else {
+          // Regular user login
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Đăng nhập thành công!")),
+            );
+          }
+        }
       } on FirebaseAuthException catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? "Lỗi không xác định")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.message ?? "Lỗi không xác định")),
+          );
+        }
       }
     }
   }

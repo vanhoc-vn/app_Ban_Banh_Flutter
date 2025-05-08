@@ -1,5 +1,7 @@
+import 'package:e_commerical/provider/admin_product_provider.dart';
 import 'package:e_commerical/provider/categorie_provider.dart';
 import 'package:e_commerical/provider/product_provider.dart';
+import 'package:e_commerical/screens/admin/layout/admin_layout.dart';
 import 'package:e_commerical/screens/homepage.dart';
 import 'package:e_commerical/screens/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,10 +24,15 @@ class AppWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider<AdminProductProvider>(
+          create: (_) => AdminProductProvider(),
+        ),
         ChangeNotifierProvider<ProductProvider>(
-            create: (_) => ProductProvider()),
+          create: (_) => ProductProvider(),
+        ),
         ChangeNotifierProvider<CategoryProvider>(
-            create: (_) => CategoryProvider()),
+          create: (_) => CategoryProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -33,7 +40,8 @@ class AppWrapper extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
-        home: StreamBuilder<User?>(
+        home: 
+        StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (ctx, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
