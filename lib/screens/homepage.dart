@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerical/screens/detailscreen.dart';
 import 'package:e_commerical/screens/listproduct.dart';
 import 'package:e_commerical/widgets/singleproduct.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:provider/provider.dart';
@@ -70,7 +71,7 @@ class _HomePageState extends State<HomePage> {
         children: <Widget>[
           UserAccountsDrawerHeader(
             accountName: Text(
-              "Tiệm bánh Học Đức",
+              "Dream cake",
               style: TextStyle(color: Colors.black),
             ),
             currentAccountPicture: CircleAvatar(
@@ -135,7 +136,26 @@ class _HomePageState extends State<HomePage> {
             title: Text("Contact Us"),
           ),
           ListTile(
-            onTap: () {},
+            onTap: () async {
+              try {
+                await FirebaseAuth.instance.signOut();
+                // Không cần Navigator.pushReplacement ở đây vì StreamBuilder trong main.dart sẽ xử lý việc chuyển hướng
+                // (Tùy chọn) Thêm code để xóa các dữ liệu cục bộ của người dùng nếu cần
+                // Ví dụ:
+                // Provider.of<CartProvider>(context, listen: false).clearCart();
+                // SharedPreferences prefs = await SharedPreferences.getInstance();
+                // await prefs.remove('userToken');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Đăng xuất thành công!")),
+                );
+              } catch (e) {
+                print("Lỗi đăng xuất: $e");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Đã xảy ra lỗi khi đăng xuất.")),
+                );
+              }
+
+            },
             leading: Icon(Icons.logout),
             title: Text("Logout"),
           ),

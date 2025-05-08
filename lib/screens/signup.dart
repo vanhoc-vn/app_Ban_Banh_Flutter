@@ -38,6 +38,12 @@ class _SignupState extends State<Signup> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Đăng ký thành công!")),
         );
+
+        // ✅ Sau khi đăng ký thành công, chuyển về màn hình Login
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const Login()),
+        );
+
       } on FirebaseAuthException catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.message ?? "Lỗi không xác định")),
@@ -45,6 +51,7 @@ class _SignupState extends State<Signup> {
       }
     }
   }
+
 
   Widget _buildAllTextFormField() {
     return Column(
