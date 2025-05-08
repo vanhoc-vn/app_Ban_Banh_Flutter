@@ -1,25 +1,12 @@
 import 'package:e_commerical/model/product.dart';
-import 'package:e_commerical/screens/homepage.dart';
-import 'package:e_commerical/widgets/singleproduct.dart';
+import 'package:e_commerical/screens/detailscreen.dart'; // Import DetailScreen
 import 'package:flutter/material.dart';
 
 class ListProduct extends StatelessWidget {
   final String name;
- // final List<Product> snapShot;
- final List<Product> snapShot;
+  final List<Product> snapShot;
 
   ListProduct({required this.name, required this.snapShot});
-
-  Widget _buildCategoryProduct({required String image, required int color}) {
-    return CircleAvatar(
-      maxRadius: 30,
-      backgroundColor: Color(color),
-      child: Container(
-        height: 40,
-        child: Image(color: Colors.white, image: AssetImage("images/$image")),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,13 +61,9 @@ class ListProduct extends StatelessWidget {
                     crossAxisCount: 2,
                     childAspectRatio: 0.7,
                     scrollDirection: Axis.vertical,
-                    children: snapShot
-                        .map((e) => SingleProduct(
-                      image: e.image,
-                      name: e.name,
-                      price: e.price,
-                    ))
-                        .toList(),
+                    children: snapShot.map((product) { // Iterate through snapShot
+                      return _buildProductItem(product, context); // Build item
+                    }).toList(),
                   ),
                 ),
               ],
@@ -90,4 +73,53 @@ class ListProduct extends StatelessWidget {
       ),
     );
   }
+
+  // New function to build each product item
+  Widget _buildProductItem(Product product, BuildContext context) {
+    return GestureDetector( // Wrap with GestureDetector
+      onTap: () {
+        Navigator.of(context).push( // Navigate to DetailScreen on tap
+          MaterialPageRoute(
+            builder: (ctx) => DetailScreen( // Pass product details
+              image: product.image,
+              name: product.name,
+              price: product.price,
+            ),
+          ),
+        );
+      },
+      child: Card( // Use a Card for better UI
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded( // Use Expanded to take up available space
+                child: Center(
+                  child: Image.network( // Use Image.network
+                    product.image,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                product.name,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 4),
+              Text(
+                "\$${product.price.toStringAsFixed(2)}", // Format price
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+
