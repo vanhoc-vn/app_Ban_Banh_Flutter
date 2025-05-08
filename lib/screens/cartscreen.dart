@@ -27,10 +27,12 @@ class _CartScreenState extends State<CartScreen> {
             style: TextStyle(fontSize: 18, color: Colors.white),
           ),
           onPressed: () {
-            // Use Navigator.push to go to the CheckOutScreen
+            // Sử dụng Navigator.push để chuyển đến màn hình CheckOutScreen
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CheckOutScreen()), // Corrected class name.
+              MaterialPageRoute(
+                builder: (context) => CheckOutScreen(), // Đã sửa tên class.
+              ),
             );
           },
         ),
@@ -43,7 +45,7 @@ class _CartScreenState extends State<CartScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            // Use Navigator.of(context).pop() to go back
+            // Sử dụng Navigator.of(context).pop() để quay lại trang trước
             Navigator.of(context).pop();
           },
         ),
@@ -59,14 +61,20 @@ class _CartScreenState extends State<CartScreen> {
         itemCount: productProvider.getCartModelList.length,
         itemBuilder: (ctx, index) => CartSingleProduct(
           isCount: false,
-          quentity: productProvider.getCartModelList[index].quentity ?? 0,
+          quantity: productProvider.getCartModelList[index].quantity ?? 0,
           image: productProvider.getCartModelList[index].image ?? '',
           name: productProvider.getCartModelList[index].name ?? '',
           price: productProvider.getCartModelList[index].price ?? 0.0,
+          onQuantityChanged: (newQuantity) {
+            // Cập nhật số lượng trong product provider
+            productProvider.updateQuantity(
+              productProvider.getCartModelList[index].name!, // Pass the name of the item
+              newQuantity,
+            );
+          },
         ),
       )
           : const Center(child: Text("Your cart is empty")),
     );
   }
 }
-

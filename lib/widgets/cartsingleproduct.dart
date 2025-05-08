@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 class CartSingleProduct extends StatefulWidget {
   final String name;
   final String image;
-  int quentity;
+  int quantity;
   final double price;
   final bool isCount;
+  final void Function(int) onQuantityChanged; // Thêm tham số callback
 
   CartSingleProduct({
-    required this.quentity,
+    required this.quantity,
     required this.image,
     required this.name,
     required this.price,
     this.isCount = true,
+    required this.onQuantityChanged, // Thêm vào constructor
   });
 
   @override
@@ -72,21 +74,28 @@ class _CartSingleProductState extends State<CartSingleProduct> {
                                 child: Icon(Icons.remove),
                                 onTap: () {
                                   setState(() {
-                                    if (widget.quentity > 1) {
-                                      widget.quentity--;
+                                    if (widget.quantity > 1) {
+                                      widget.quantity--;
+                                      widget.onQuantityChanged(widget.quantity); // Gọi callback
+                                    } else {
+                                      // Gửi tín hiệu xóa sản phẩm khi số lượng là 0
+                                      widget.onQuantityChanged(0);
                                     }
                                   });
                                 },
                               ),
                               Text(
-                                widget.quentity.toString(), // Use widget.quentity here
+                                widget
+                                    .quantity
+                                    .toString(), // Use widget.quantity here
                                 style: TextStyle(fontSize: 18),
                               ),
                               GestureDetector(
                                 child: Icon(Icons.add),
                                 onTap: () {
                                   setState(() {
-                                    widget.quentity++;
+                                    widget.quantity++;
+                                    widget.onQuantityChanged(widget.quantity); // Gọi callback
                                   });
                                 },
                               ),
@@ -105,4 +114,3 @@ class _CartSingleProductState extends State<CartSingleProduct> {
     );
   }
 }
-

@@ -148,7 +148,7 @@ class _DetailScreenState extends State<DetailScreen> {
             image: widget.image,
             name: widget.name,
             price: widget.price,
-            quentity: count,
+            quantity: count,
           );
           Navigator.of(
             context,

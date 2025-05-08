@@ -33,7 +33,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
 
     double totalPrice = 0.0;
     for (var cartItem in productProvider.getCartModelList) {
-      totalPrice += (cartItem.price ?? 0.0) * (cartItem.quentity ?? 0);
+      totalPrice += (cartItem.price ?? 0.0) * (cartItem.quantity ?? 0);
     }
 
     double discount = totalPrice * 0.03;
@@ -75,18 +75,30 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             productProvider.getCartModelList.isNotEmpty
-                ? Expanded( // Use Expanded to allow the ListView.builder to take up available space
+                ? Expanded(
+              // Use Expanded to allow the ListView.builder to take up available space
               child: ListView.builder(
                 itemCount: productProvider.getCartModelList.length,
                 itemBuilder: (ctx, index) {
-                  final cartItem = productProvider.getCartModelList[index];
-                  return Column( // Wrap CartSingleProduct and details in a Column
+                  final cartItem =
+                  productProvider.getCartModelList[index];
+                  return Column(
+                    // Wrap CartSingleProduct and details in a Column
                     children: [
                       CartSingleProduct(
-                        quentity: cartItem.quentity ?? 0,
+                        quantity: cartItem.quantity ?? 0,
                         image: cartItem.image ?? '',
                         name: cartItem.name ?? '',
                         price: cartItem.price ?? 0.0,
+                        onQuantityChanged: (newQuantity) {
+                          //  setState(() {});  // Không cần setState ở đây
+                          //  Quan trọng: Cập nhật giá trị trong provider để bên này tự cập nhật theo
+                          productProvider.updateQuantity(
+                              cartItem.name!, newQuantity); // Pass the name and newQuantity
+
+                          // Gọi lại setState để rebuild lại trang và hiển thị giá mới
+                          setState(() {});
+                        },
                       ),
                       _buildBottomDetail(
                         startName: "Your Price",
@@ -94,8 +106,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                         "\$${(cartItem.price ?? 0.0).toStringAsFixed(2)}",
                       ),
                       if (index ==
-                          productProvider.getCartModelList.length -
-                              1) ...[
+                          productProvider.getCartModelList.length - 1) ...[
                         _buildBottomDetail(
                           startName: "Discount",
                           endName: "-\$${discount.toStringAsFixed(2)}",
@@ -125,4 +136,3 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     );
   }
 }
-

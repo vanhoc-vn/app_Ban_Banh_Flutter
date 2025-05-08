@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 import '../model/cartmodel.dart';
 import '../model/product.dart';
 
@@ -8,32 +7,27 @@ class ProductProvider with ChangeNotifier {
   List<Product> feature = [];
   Product? featureData;
 
-  List<CartModel> cartModelList = [];
-  late CartModel cartModel;
+  List<CartModel> _cartModelList = [];
+  List<CartModel> get getCartModelList => _cartModelList;
+  int get getCartModelListLength => _cartModelList.length;
 
-  void getCartData({String? name, String? image, int? quentity, double? price}) {
-    if (name != null && image != null && quentity != null && price != null) {
-      cartModel = CartModel(
+  void getCartData({String? name, String? image, int? quantity, double? price}) {
+    if (name != null && image != null && quantity != null && price != null) {
+      _cartModelList.add(CartModel(
         price: price,
         name: name,
         image: image,
-        quentity: quentity,
-      );
-      cartModelList.add(cartModel);
+        quantity: quantity,
+      ));
       notifyListeners();
     } else {
       print("Warning: Some cart data is null and cannot be added.");
     }
   }
 
-  List<CartModel> get getCartModelList => List.from(cartModelList);
-  int get getCartModelListLength => cartModelList.length;
-
-
   Future<void> getFutureData() async {
     List<Product> newList = [];
-    QuerySnapshot featureSnapShot =
-    await FirebaseFirestore.instance
+    QuerySnapshot featureSnapShot = await FirebaseFirestore.instance
         .collection("products")
         .doc("qtZQegLgnUOMbI9WRusO")
         .collection("featureproduct")
@@ -108,11 +102,10 @@ class ProductProvider with ChangeNotifier {
 
   Future<void> getNewAchiveData() async {
     List<Product> newList = [];
-    QuerySnapshot newAchivesSnapshot =
-    await FirebaseFirestore.instance
+    QuerySnapshot newAchivesSnapshot = await FirebaseFirestore.instance
         .collection("products")
         .doc("qtZQegLgnUOMbI9WRusO")
-        .collection("newachives") // Changed to "newachives"
+        .collection("newachives")
         .get();
     for (var element in newAchivesSnapshot.docs) {
       var data = element.data() as Map<String, dynamic>;
@@ -129,5 +122,21 @@ class ProductProvider with ChangeNotifier {
 
   List<Product> get getNewAchiesList {
     return newAchives;
+  }
+
+  void updateQuantity(String itemName, int newQuantity) {
+    // Tìm sản phẩm trong giỏ hàng theo tên.
+    int index = _cartModelList.indexWhere((item) => item.name == itemName);
+    if (index != -1) {
+      // Nếu sản phẩm được tìm thấy
+      if (newQuantity > 0) {
+        // Nếu số lượng mới lớn hơn 0, cập nhật số lượng.
+        _cartModelList[index].quantity = newQuantity;
+      } else {
+        // Nếu số lượng mới là 0, xóa sản phẩm khỏi giỏ hàng.
+        _cartModelList.removeAt(index);
+      }
+      notifyListeners(); // Báo cho các listener để rebuild UI.
+    }
   }
 }
