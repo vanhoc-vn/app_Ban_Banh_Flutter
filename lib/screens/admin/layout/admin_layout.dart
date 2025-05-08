@@ -1,12 +1,9 @@
 import 'package:e_commerical/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../pages/dashboard_page.dart';
 import '../pages/orders_page.dart';
 import '../pages/products_page.dart';
 import '../pages/customers_page.dart';
-import '../pages/promotions_page.dart';
-import '../pages/settings_page.dart';
 
 class AdminLayout extends StatefulWidget {
   const AdminLayout({super.key});
@@ -20,11 +17,6 @@ class _AdminLayoutState extends State<AdminLayout> {
 
   final List<_MenuItem> _menuItems = [
     _MenuItem(
-      title: 'Dashboard',
-      icon: Icons.dashboard,
-      page: const DashboardPage(),
-    ),
-    _MenuItem(
       title: 'Orders',
       icon: Icons.shopping_cart,
       page: const OrdersPage(),
@@ -34,16 +26,6 @@ class _AdminLayoutState extends State<AdminLayout> {
       title: 'Customers',
       icon: Icons.people,
       page: const CustomersPage(),
-    ),
-    _MenuItem(
-      title: 'Promotions',
-      icon: Icons.local_offer,
-      page: const PromotionsPage(),
-    ),
-    _MenuItem(
-      title: 'Settings',
-      icon: Icons.settings,
-      page: const SettingsPage(),
     ),
   ];
 

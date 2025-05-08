@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
+import 'package:e_commerical/provider/order_provider.dart';
+import 'package:e_commerical/provider/customer_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +35,8 @@ class AppWrapper extends StatelessWidget {
         ChangeNotifierProvider<CategoryProvider>(
           create: (_) => CategoryProvider(),
         ),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => CustomerProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -40,8 +44,7 @@ class AppWrapper extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
-        home: 
-        StreamBuilder<User?>(
+        home: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (ctx, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {

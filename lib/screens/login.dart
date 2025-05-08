@@ -126,6 +126,30 @@ class _LoginState extends State<Login> {
           String role = userDoc.get('role') ?? 'user';
           String storedPassword = userDoc.get('password') ?? '';
 
+          // Kiểm tra isBlocked với giá trị mặc định là false nếu chưa tồn tại
+          bool isBlocked = false;
+          if (userDoc.data() != null) {
+            Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+            isBlocked = data['isBlocked'] ?? false;
+          }
+
+          // Kiểm tra xem tài khoản có bị chặn không
+          if (isBlocked) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    "Tài khoản của bạn đã bị chặn. Vui lòng liên hệ admin để được hỗ trợ.",
+                  ),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              // Đăng xuất người dùng nếu tài khoản bị chặn
+              await FirebaseAuth.instance.signOut();
+              return;
+            }
+          }
+
           // Kiểm tra password
           if (password!.trim() == storedPassword) {
             if (mounted) {
