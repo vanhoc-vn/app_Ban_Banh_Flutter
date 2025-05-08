@@ -67,8 +67,8 @@ class _LoginState extends State<Login> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return "Please Fill Password";
-              } else if (value.length < 8) {
-                return "Mật khẩu phải có ít nhất 8 ký tự";
+              } else if (value.length < 6) {
+                return "Mật khẩu phải có ít nhất 6 ký tự";
               }
               return null;
             },
