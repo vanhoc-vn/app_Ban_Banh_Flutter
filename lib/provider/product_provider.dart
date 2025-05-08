@@ -139,4 +139,10 @@ class ProductProvider with ChangeNotifier {
       notifyListeners(); // Báo cho các listener để rebuild UI.
     }
   }
+
+  void clearCart() {
+    _cartModelList.clear();
+    notifyListeners();
+  }
 }
+
