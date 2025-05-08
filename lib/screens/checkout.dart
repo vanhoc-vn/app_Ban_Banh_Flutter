@@ -1,6 +1,6 @@
-import 'package:e_commerical/provider/product_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../provider/product_provider.dart';
 import '../widgets/cartsingleproduct.dart';
 
 class CheckOutScreen extends StatefulWidget {
@@ -71,50 +71,58 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-        child: productProvider.getCartModelList.isNotEmpty
-            ? ListView.builder(
-          itemCount: productProvider.getCartModelList.length,
-          itemBuilder: (ctx, index) {
-            final cartItem = productProvider.getCartModelList[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  CartSingleProduct(
-                    quentity: cartItem.quentity ?? 0,
-                    image: cartItem.image ?? '',
-                    name: cartItem.name ?? '',
-                    price: cartItem.price ?? 0.0,
-                  ),
-                  _buildBottomDetail(
-                    startName: "Your Price",
-                    endName: "\$${(cartItem.price ?? 0.0).toStringAsFixed(2)}",
-                  ),
-                  if (index == productProvider.getCartModelList.length - 1) ...[
-                    _buildBottomDetail(
-                      startName: "Discount",
-                      endName: "- \$${discount.toStringAsFixed(2)}",
-                    ),
-                    _buildBottomDetail(
-                      startName: "Shipping",
-                      endName: "\$${shippingCost.toStringAsFixed(2)}",
-                    ),
-                    Divider(thickness: 1.2),
-                    _buildBottomDetail(
-                      startName: "Total",
-                      endName: "\$${finalTotal.toStringAsFixed(2)}",
-                    ),
-                  ]
-                ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            productProvider.getCartModelList.isNotEmpty
+                ? Expanded( // Use Expanded to allow the ListView.builder to take up available space
+              child: ListView.builder(
+                itemCount: productProvider.getCartModelList.length,
+                itemBuilder: (ctx, index) {
+                  final cartItem = productProvider.getCartModelList[index];
+                  return Column( // Wrap CartSingleProduct and details in a Column
+                    children: [
+                      CartSingleProduct(
+                        quentity: cartItem.quentity ?? 0,
+                        image: cartItem.image ?? '',
+                        name: cartItem.name ?? '',
+                        price: cartItem.price ?? 0.0,
+                      ),
+                      _buildBottomDetail(
+                        startName: "Your Price",
+                        endName:
+                        "\$${(cartItem.price ?? 0.0).toStringAsFixed(2)}",
+                      ),
+                      if (index ==
+                          productProvider.getCartModelList.length -
+                              1) ...[
+                        _buildBottomDetail(
+                          startName: "Discount",
+                          endName: "-\$${discount.toStringAsFixed(2)}",
+                        ),
+                        _buildBottomDetail(
+                          startName: "Shipping",
+                          endName: "\$${shippingCost.toStringAsFixed(2)}",
+                        ),
+                        Divider(thickness: 1.2),
+                        _buildBottomDetail(
+                          startName: "Total",
+                          endName: "\$${finalTotal.toStringAsFixed(2)}",
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
-            );
-          },
-        )
-            : const Center(
-          child: Text("Your cart is empty", style: TextStyle(fontSize: 18)),
+            )
+                : const Center(
+              child: Text("Your cart is empty",
+                  style: TextStyle(fontSize: 18)),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+

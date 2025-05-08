@@ -1,31 +1,29 @@
-
 import 'package:flutter/material.dart';
 
 class CartSingleProduct extends StatefulWidget {
   final String name;
   final String image;
-  final int quentity;
+  int quentity;
   final double price;
+  final bool isCount;
 
   CartSingleProduct({
     required this.quentity,
     required this.image,
     required this.name,
     required this.price,
+    this.isCount = true,
   });
 
   @override
   State<CartSingleProduct> createState() => _CartSingleProductState();
 }
 
-int count = 0;
-
 TextStyle myStyle = TextStyle(fontSize: 18);
 
 class _CartSingleProductState extends State<CartSingleProduct> {
   @override
   Widget build(BuildContext context) {
-    count = widget.quentity;
     return Container(
       height: 150,
       width: double.infinity,
@@ -64,31 +62,31 @@ class _CartSingleProductState extends State<CartSingleProduct> {
                         ),
                         Container(
                           height: 35,
-                          width: 120,
+                          width: widget.isCount == false ? 120 : 100,
                           color: Color(0xfff2f2f2),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceEvenly, // Added spaceEvenly
                             children: <Widget>[
                               GestureDetector(
                                 child: Icon(Icons.remove),
                                 onTap: () {
                                   setState(() {
-                                    if (count > 1) {
-                                      count--;
+                                    if (widget.quentity > 1) {
+                                      widget.quentity--;
                                     }
                                   });
                                 },
                               ),
                               Text(
-                                count.toString(),
+                                widget.quentity.toString(), // Use widget.quentity here
                                 style: TextStyle(fontSize: 18),
                               ),
                               GestureDetector(
                                 child: Icon(Icons.add),
                                 onTap: () {
                                   setState(() {
-                                    count++;
+                                    widget.quentity++;
                                   });
                                 },
                               ),
@@ -107,3 +105,4 @@ class _CartSingleProductState extends State<CartSingleProduct> {
     );
   }
 }
+
