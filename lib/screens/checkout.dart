@@ -1,100 +1,54 @@
+import 'package:e_commerical/provider/product_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../widgets/cartsingleproduct.dart';
 
-class CheckOut extends StatefulWidget {
-  final double price;
-  final String name;
-  final String image;
-
-  CheckOut({required this.price, required this.name, required this.image});
-
+class CheckOutScreen extends StatefulWidget {
   @override
-  State<CheckOut> createState() => _CheckOutState();
+  _CheckOutScreenState createState() => _CheckOutScreenState();
 }
 
-class _CheckOutState extends State<CheckOut> {
+class _CheckOutScreenState extends State<CheckOutScreen> {
   final TextStyle myStyle = TextStyle(fontSize: 18);
-
-  Widget _buildSingleCartProduct() {
-    return Container(
-      height: 150,
-      width: double.infinity,
-      child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: [
-                Container(
-                  height: 110,
-                  width: 150,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.fill,
-                      image: AssetImage("images/${widget.image}"),
-                    ),
-                  ),
-                ),
-                Container(
-                  height: 140,
-                  width: 200,
-                  child: ListTile(
-                    title: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(widget.name, style: myStyle),
-                        Text("Cloths"),
-                        Text(
-                          "\$ ${widget.price} ",
-                          style: TextStyle(
-                            color: Color(0xff9b96d6),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          height: 35,
-                          width: 100,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[Text("Quentity"), Text("1")],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildBottomDetail({
     required String startName,
     required String endName,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text(startName, style: myStyle),
-        Text(endName, style: myStyle),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(startName, style: myStyle),
+          Text(endName, style: myStyle),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final productProvider = Provider.of<ProductProvider>(context);
+
+    double totalPrice = 0.0;
+    for (var cartItem in productProvider.getCartModelList) {
+      totalPrice += (cartItem.price ?? 0.0) * (cartItem.quentity ?? 0);
+    }
+
+    double discount = totalPrice * 0.03;
+    double shippingCost = 60.00;
+    double finalTotal = totalPrice - discount + shippingCost;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("CheckOut Page", style: TextStyle(color: Colors.black)),
+        title: Text("Checkout Page", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.transparent,
         elevation: 0.0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: <Widget>[
           IconButton(
@@ -105,51 +59,60 @@ class _CheckOutState extends State<CheckOut> {
       ),
       bottomNavigationBar: Container(
         height: 70,
-        width: 100,
         margin: EdgeInsets.symmetric(horizontal: 10),
         padding: EdgeInsets.only(bottom: 10),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Color(0xff746bc9)),
-          // Use styleFrom for color
-          child: Text(
-            "Buy",
-            style: TextStyle(fontSize: 18, color: Colors.white),
-          ),
-          onPressed: () {},
-        ), // Corrected onPressed syntax
+          child: Text("Buy", style: TextStyle(fontSize: 18, color: Colors.white)),
+          onPressed: () {
+            // TODO: Add buy logic
+          },
+        ),
       ),
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-        child: ListView(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                _buildSingleCartProduct(),
-                _buildSingleCartProduct(),
-                _buildSingleCartProduct(),
-                _buildSingleCartProduct(),
-                Container(
-                  height: 150,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      _buildBottomDetail(
-                        startName: "Your Price",
-                        endName: "\$ 60.00",
-                      ),
-                      _buildBottomDetail(startName: "Discount", endName: "3% "),
-                      _buildBottomDetail(
-                        startName: "Shipping",
-                        endName: "\$ 60.00",
-                      ),
-                      _buildBottomDetail(startName: "Total", endName: "\$ 120"),
-                    ],
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+        child: productProvider.getCartModelList.isNotEmpty
+            ? ListView.builder(
+          itemCount: productProvider.getCartModelList.length,
+          itemBuilder: (ctx, index) {
+            final cartItem = productProvider.getCartModelList[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  CartSingleProduct(
+                    quentity: cartItem.quentity ?? 0,
+                    image: cartItem.image ?? '',
+                    name: cartItem.name ?? '',
+                    price: cartItem.price ?? 0.0,
                   ),
-                ),
-              ],
-            ),
-          ],
+                  _buildBottomDetail(
+                    startName: "Your Price",
+                    endName: "\$${(cartItem.price ?? 0.0).toStringAsFixed(2)}",
+                  ),
+                  if (index == productProvider.getCartModelList.length - 1) ...[
+                    _buildBottomDetail(
+                      startName: "Discount",
+                      endName: "- \$${discount.toStringAsFixed(2)}",
+                    ),
+                    _buildBottomDetail(
+                      startName: "Shipping",
+                      endName: "\$${shippingCost.toStringAsFixed(2)}",
+                    ),
+                    Divider(thickness: 1.2),
+                    _buildBottomDetail(
+                      startName: "Total",
+                      endName: "\$${finalTotal.toStringAsFixed(2)}",
+                    ),
+                  ]
+                ],
+              ),
+            );
+          },
+        )
+            : const Center(
+          child: Text("Your cart is empty", style: TextStyle(fontSize: 18)),
         ),
       ),
     );

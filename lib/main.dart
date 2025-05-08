@@ -20,26 +20,26 @@ class AppWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: MultiProvider(
-        providers: [
-          ListenableProvider<ProductProvider>(
-              create: (ctx) => ProductProvider()),
-          ListenableProvider<CategoryProvider>(
-              create: (ctx) => CategoryProvider()),
-        ],
-        child: StreamBuilder<User?>(
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ProductProvider>(
+            create: (_) => ProductProvider()),
+        ChangeNotifierProvider<CategoryProvider>(
+            create: (_) => CategoryProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        ),
+        home: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (ctx, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasData) {
-              return HomePage(); // người dùng đã đăng nhập
+              return HomePage(); // đã đăng nhập
             } else {
               return const Login(); // chưa đăng nhập
             }

@@ -1,6 +1,9 @@
 import 'package:e_commerical/screens/cartscreen.dart';
 import 'package:e_commerical/screens/homepage.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../provider/product_provider.dart';
 
 class DetailScreen extends StatefulWidget {
   final String image;
@@ -15,6 +18,7 @@ class DetailScreen extends StatefulWidget {
 
 class _DetailScreenState extends State<DetailScreen> {
   int count = 1;
+  late ProductProvider productProvider; // Late initialization
 
   Widget _buildSizeProduct({required String name}) {
     return Container(
@@ -52,6 +56,7 @@ class _DetailScreenState extends State<DetailScreen> {
       ),
     );
   }
+
   Widget _buildNameToDescriptionPart() {
     return Container(
       height: 120,
@@ -73,6 +78,7 @@ class _DetailScreenState extends State<DetailScreen> {
       ),
     );
   }
+
   Widget _buildDescription() {
     return Container(
       child: Padding(
@@ -84,6 +90,7 @@ class _DetailScreenState extends State<DetailScreen> {
       ),
     );
   }
+
   Widget _buildSizePart() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,6 +113,7 @@ class _DetailScreenState extends State<DetailScreen> {
       ],
     );
   }
+
   Widget _buildColorPart() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,29 +136,31 @@ class _DetailScreenState extends State<DetailScreen> {
       ],
     );
   }
-  Widget _buildButtonPart(){
+
+  Widget _buildButtonPart() {
     return Container(
       height: 60,
       width: double.infinity,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.pink,
-        ),
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.pink),
         onPressed: () {
-          // Hành động khi nhấn nút
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx)=>CartScreen(
+          productProvider.getCartData(
             image: widget.image,
             name: widget.name,
             price: widget.price,
-          ),),);
+            quentity: count,
+          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (ctx) => CartScreen()
+            ,)
+            ,);
         },
-        child: Text(
-          'Check Out',
-          style: TextStyle(color: Colors.white),
-        ),
+        child: Text('Check Out', style: TextStyle(color: Colors.white)),
       ),
     );
   }
+
   Widget _buildQuentityPart() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +177,6 @@ class _DetailScreenState extends State<DetailScreen> {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
             children: <Widget>[
               GestureDetector(
                 child: Icon(Icons.remove),
@@ -197,6 +206,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    productProvider = Provider.of<ProductProvider>(context); // Initialize here
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -218,7 +228,6 @@ class _DetailScreenState extends State<DetailScreen> {
           ),
         ],
       ),
-
       body: SingleChildScrollView(
         child: Container(
           margin: EdgeInsets.symmetric(horizontal: 20),
@@ -234,9 +243,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     _buildSizePart(),
                     _buildColorPart(),
                     _buildQuentityPart(),
-                    SizedBox(
-                      height: 15,
-                    ),
+                    SizedBox(height: 15),
                     _buildButtonPart(),
                   ],
                 ),
@@ -248,4 +255,3 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 }
-

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:e_commerical/provider/categorie_provider.dart';
 import 'package:e_commerical/screens/detailscreen.dart';
 import 'package:e_commerical/screens/listproduct.dart';
 import 'package:e_commerical/widgets/singleproduct.dart';
@@ -8,6 +7,8 @@ import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../model/product.dart';
+import '../provider/categorie_provider.dart';
+import '../provider/product_provider.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -15,20 +16,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late CategoryProvider provider;
+  late CategoryProvider categoryProvider;
+  late ProductProvider productProvider;
+
   bool homeColor = true;
   bool cartColor = false;
   bool aboutColor = false;
   bool contactUsColor = false;
-
-  Product? menData;
-  Product? womenData;
-  Product? buibData;
-  Product? smartPhoneData;
-
-  QuerySnapshot? shirtSnapShot;
-  QuerySnapshot? featureSnapShot;
-  QuerySnapshot? newAchivesSnapShot;
 
   List<Product> shirts = [];
   List<Product> dress = [];
@@ -42,12 +36,17 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () {
-      provider = Provider.of<CategoryProvider>(context, listen: false);
-      provider.getShirtData();
-      provider.getDressData();
-      provider.getShoesData();
-      provider.getPantData();
-      provider.getTieData();
+      categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+      categoryProvider.getShirtData();
+      categoryProvider.getDressData();
+      categoryProvider.getShoesData();
+      categoryProvider.getPantData();
+      categoryProvider.getTieData();
+      productProvider = Provider.of<ProductProvider>(context, listen: false);
+      productProvider.getNewAchiveData();
+      productProvider.getFutureData();
+      productProvider.getHomeFeatureData();
+      productProvider.getHomeAchiveData();
     });
   }
 
@@ -59,7 +58,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Color(color),
         child: Container(
           height: 40,
-          child: Image(color: Colors.white, image: AssetImage("images/$image")),
+          child: Image(color: Colors.white, image: NetworkImage(image)), // Sử dụng NetworkImage
         ),
       ),
     );
@@ -70,10 +69,18 @@ class _HomePageState extends State<HomePage> {
       child: ListView(
         children: <Widget>[
           UserAccountsDrawerHeader(
-            accountName: Text("Tiệm bánh Học Đức", style: TextStyle(color: Colors.black)),
-            currentAccountPicture: CircleAvatar(backgroundImage: AssetImage("images/hinhbongnoluc.jpg")),
+            accountName: Text(
+              "Tiệm bánh Học Đức",
+              style: TextStyle(color: Colors.black),
+            ),
+            currentAccountPicture: CircleAvatar(
+              backgroundImage: AssetImage("images/hinhbongnoluc.jpg"),
+            ),
             decoration: BoxDecoration(color: Color(0xfff2f2f2)),
-            accountEmail: Text("hoclv.04@gmail.com", style: TextStyle(color: Colors.black)),
+            accountEmail: Text(
+              "hoclv.04@gmail.com",
+              style: TextStyle(color: Colors.black),
+            ),
           ),
           ListTile(
             selected: homeColor,
@@ -170,21 +177,44 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text("Categorie", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              Text(
+                "Categorie",
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
             ],
           ),
         ),
         SizedBox(height: 10),
         Container(
           height: 60,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
-              _categoryItem("Dress", dress),
-              _categoryItem("Shirt", shirts),
-              _categoryItem("Shoes", shoes),
-              _categoryItem("Pant", pant),
-              _categoryItem("Tie", tie),
+              _categoryItem(
+                  "Nước uống",
+                  dress,
+                  0xffFF6B81,
+                  "https://cdn-icons-png.flaticon.com/512/1824/1824898.png"),
+              _categoryItem(
+                  "bánh trung thu",
+                  shirts,
+                  0xff468499,
+                  "https://cdn-icons-png.flaticon.com/512/1284/1284358.png"),
+              _categoryItem(
+                  "Bánh mì các nước",
+                  shoes,
+                  0xff43AA8B,
+                  "https://cdn-icons-png.flaticon.com/512/2567/2567972.png"),
+              _categoryItem(
+                  "Mỳ gối",
+                  pant,
+                  0xffFFA726,
+                  "https://cdn-icons-png.flaticon.com/512/1151/1151516.png"),
+              _categoryItem(
+                  "Bánh sinh nhật",
+                  tie,
+                  0xff9C27B0,
+                  "https://cdn-icons-png.flaticon.com/512/1013/1013346.png"),
             ],
           ),
         ),
@@ -192,19 +222,33 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _categoryItem(String name, List<Product> data) {
+  Widget _categoryItem(
+      String name, List<Product> data, int color, String imagePath) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (ctx) => ListProduct(name: name, snapShot: data),
-        ));
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) => ListProduct(name: name, snapShot: data),
+          ),
+        );
       },
-      child: _buildCategoryProduct(image: "icon_ao.png", color: 0xff33dcfd),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5.0),
+        child: CircleAvatar(
+          maxRadius: 30,
+          backgroundColor: Color(color),
+          child: Container(
+            height: 40,
+            child: Image(color: Colors.white, image: NetworkImage(imagePath)),
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildNewAchives() {
-    if (buibData == null || smartPhoneData == null) return SizedBox.shrink();
+    // Sử dụng dữ liệu từ ProductProvider
+    List<Product> newAchivesProduct = productProvider.getNewAchiesList;
 
     return Column(
       children: <Widget>[
@@ -216,30 +260,39 @@ class _HomePageState extends State<HomePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text("New Achives", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  // GestureDetector(
-                  //   onTap: () {
-                  //     Navigator.of(context).pushReplacement(
-                  //       MaterialPageRoute(
-                  //         builder: (ctx) => ListProduct(name: "New Achives", snapShot: newAchivesSnapShot),
-                  //       ),
-                  //     );
-                  //   },
-                  //   child: Text("View more", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  // ),
+                  Text(
+                    "New Achives",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (ctx) => ListProduct(
+                            name: "New Achieves",
+                            snapShot: newAchivesProduct,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "View more",
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                    ),
+                  )
                 ],
               ),
             ],
           ),
         ),
         SizedBox(height: 10),
+        // Sử dụng SingleChildScrollView để tạo khả năng cuộn ngang
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: [
-              _productItem(buibData!),
-              _productItem(smartPhoneData!),
-            ],
+            children: newAchivesProduct
+                .map((product) => _buildProductItem(product))
+                .toList(),
           ),
         ),
       ],
@@ -247,44 +300,56 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildFeatured() {
-    if (menData == null || womenData == null) return SizedBox.shrink();
+    // Lấy danh sách sản phẩm nổi bật từ ProductProvider.
+    final List<Product> homeFeatureProduct =
+        Provider.of<ProductProvider>(context, listen: false).getHomeFutureList;
 
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Featured", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            // GestureDetector(
-            //   onTap: () {
-            //     Navigator.of(context).pushReplacement(
-            //       MaterialPageRoute(
-            //         builder: (ctx) => ListProduct(name: "Featured", snapShot: featureSnapShot),
-            //       ),
-            //     );
-            //   },
-            //   child: Text("View more", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            // ),
+            Text(
+              "Featured",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            GestureDetector(
+              onTap: () {
+                // Chuyển đến trang danh sách sản phẩm, hiển thị tất cả sản phẩm nổi bật.
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => ListProduct(
+                      name: "Featured",
+                      snapShot: homeFeatureProduct, // Truyền danh sách sản phẩm nổi bật.
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                "View more",
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         SizedBox(height: 10),
+        // Sử dụng SingleChildScrollView để tạo khả năng cuộn ngang
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: [
-              _productItem(menData!),
-              _productItem(womenData!),
-            ],
+            children: homeFeatureProduct
+                .map((product) => _buildProductItem(product))
+                .toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _productItem(Product product) {
+  Widget _buildProductItem(Product product) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).push(
           MaterialPageRoute(
             builder: (ctx) => DetailScreen(
               image: product.image,
@@ -317,93 +382,33 @@ class _HomePageState extends State<HomePage> {
           onPressed: () => _key.currentState?.openDrawer(),
         ),
         actions: [
-          IconButton(icon: Icon(Icons.search, color: Colors.black), onPressed: () {}),
-          IconButton(icon: Icon(Icons.notifications_none, color: Colors.black), onPressed: () {}),
+          IconButton(
+            icon: Icon(Icons.search, color: Colors.black),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(Icons.notifications_none, color: Colors.black),
+            onPressed: () {},
+          ),
         ],
       ),
-      body: FutureBuilder(
-        future: FirebaseFirestore.instance
-            .collection("category")
-            .doc("ZITKuL6SpEr9vvWPijS7")
-            .collection("shirt")
-            .get(),
-        builder: (context, shirtSnap) {
-          if (shirtSnap.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-          shirtSnapShot = shirtSnap.data;
-
-          return FutureBuilder(
-            future: FirebaseFirestore.instance
-                .collection("products")
-                .doc("qtZQegLgnUOMbI9WRusO")
-                .collection("featureproduct")
-                .get(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-              if (snapshot.hasError) return Center(child: Text("Đã xảy ra lỗi khi tải dữ liệu"));
-
-              final docs = snapshot.data!.docs;
-              if (docs.length < 2) return Center(child: Text("Không đủ dữ liệu để hiển thị Featured"));
-
-              featureSnapShot = snapshot.data;
-              menData = Product(
-                image: docs[0]["image"],
-                name: docs[0]["name"],
-                price: docs[0]["price"].toDouble(),
-              );
-              womenData = Product(
-                image: docs[1]["image"],
-                name: docs[1]["name"],
-                price: docs[1]["price"].toDouble(),
-              );
-
-              return FutureBuilder(
-                future: FirebaseFirestore.instance
-                    .collection("products")
-                    .doc("qtZQegLgnUOMbI9WRusO")
-                    .collection("newachives")
-                    .get(),
-                builder: (context, snapShot) {
-                  if (snapShot.connectionState == ConnectionState.waiting)
-                    return Center(child: CircularProgressIndicator());
-                  if (snapShot.hasError) return Center(child: Text("Đã xảy ra lỗi khi tải dữ liệu"));
-
-                  final docs = snapShot.data!.docs;
-                  if (docs.length < 3) return Center(child: Text("Không đủ dữ liệu để hiển thị New Achives"));
-
-                  newAchivesSnapShot = snapShot.data;
-                  buibData = Product(
-                    image: docs[0]["image"],
-                    name: docs[0]["name"],
-                    price: docs[0]["price"].toDouble(),
-                  );
-                  smartPhoneData = Product(
-                    image: docs[2]["image"],
-                    name: docs[2]["name"],
-                    price: docs[2]["price"].toDouble(),
-                  );
-
-                  return Container(
-                    height: double.infinity,
-                    width: double.infinity,
-                    margin: EdgeInsets.symmetric(horizontal: 20),
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: BouncingScrollPhysics(),
-                      children: [
-                        _buildImageSlider(),
-                        _buildCategory(),
-                        SizedBox(height: 20),
-                        _buildFeatured(),
-                        _buildNewAchives(),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: 20),
+        child: ListView(
+          shrinkWrap: true,
+          physics: BouncingScrollPhysics(),
+          children: [
+            _buildImageSlider(),
+            _buildCategory(),
+            SizedBox(height: 20),
+            _buildFeatured(),
+            _buildNewAchives(),
+          ],
+        ),
       ),
     );
   }
 }
+
