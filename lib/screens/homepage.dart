@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerical/screens/detailscreen.dart';
 import 'package:e_commerical/screens/listproduct.dart';
+import 'package:e_commerical/screens/login.dart';
 import 'package:e_commerical/widgets/singleproduct.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   bool contactUsColor = false;
   bool _isSearching = false; // Add search state variable
   TextEditingController _searchController =
-  TextEditingController(); // Add text editing controller
+      TextEditingController(); // Add text editing controller
 
   List<Product> shirts = [];
   List<Product> dress = [];
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
   List<Product> pant = [];
   List<Product> tie = [];
   List<Product> _searchResult =
-  []; // List to store search results, initially empty
+      []; // List to store search results, initially empty
 
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
 
@@ -65,7 +66,10 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Color(color),
         child: Container(
           height: 40,
-          child: Image(color: Colors.white, image: NetworkImage(image)), // Use NetworkImage
+          child: Image(
+            color: Colors.white,
+            image: NetworkImage(image),
+          ), // Use NetworkImage
         ),
       ),
     );
@@ -113,8 +117,7 @@ class _HomePageState extends State<HomePage> {
               });
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) =>
-                      CartScreen(), // Navigate to CartScreen
+                  builder: (context) => CartScreen(), // Navigate to CartScreen
                 ),
               );
             },
@@ -153,6 +156,10 @@ class _HomePageState extends State<HomePage> {
                 await FirebaseAuth.instance.signOut();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Đăng xuất thành công!")),
+                );
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Login()),
                 );
               } catch (e) {
                 print("Lỗi đăng xuất: $e");
@@ -269,7 +276,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _categoryItem(
-      String name, List<Product> data, int color, String imagePath) {
+    String name,
+    List<Product> data,
+    int color,
+    String imagePath,
+  ) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -314,18 +325,22 @@ class _HomePageState extends State<HomePage> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (ctx) => ListProduct(
-                            name: "New Achieves",
-                            snapShot: newAchivesProduct,
-                          ),
+                          builder:
+                              (ctx) => ListProduct(
+                                name: "New Achieves",
+                                snapShot: newAchivesProduct,
+                              ),
                         ),
                       );
                     },
                     child: Text(
                       "View more",
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ],
@@ -336,9 +351,10 @@ class _HomePageState extends State<HomePage> {
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: newAchivesProduct
-                .map((product) => _buildProductItem(product))
-                .toList(),
+            children:
+                newAchivesProduct
+                    .map((product) => _buildProductItem(product))
+                    .toList(),
           ),
         ),
       ],
@@ -364,10 +380,12 @@ class _HomePageState extends State<HomePage> {
                 // Chuyển đến trang danh sách sản phẩm, hiển thị tất cả sản phẩm nổi bật.
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (ctx) => ListProduct(
-                      name: "Featured",
-                      snapShot: homeFeatureProduct, // Truyền danh sách sản phẩm nổi bật.
-                    ),
+                    builder:
+                        (ctx) => ListProduct(
+                          name: "Featured",
+                          snapShot:
+                              homeFeatureProduct, // Truyền danh sách sản phẩm nổi bật.
+                        ),
                   ),
                 );
               },
@@ -383,9 +401,10 @@ class _HomePageState extends State<HomePage> {
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: homeFeatureProduct
-                .map((product) => _buildProductItem(product))
-                .toList(),
+            children:
+                homeFeatureProduct
+                    .map((product) => _buildProductItem(product))
+                    .toList(),
           ),
         ),
       ],
@@ -397,11 +416,12 @@ class _HomePageState extends State<HomePage> {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (ctx) => DetailScreen(
-              image: product.image,
-              name: product.name,
-              price: product.price,
-            ),
+            builder:
+                (ctx) => DetailScreen(
+                  image: product.image,
+                  name: product.name,
+                  price: product.price,
+                ),
           ),
         );
       },
@@ -418,22 +438,36 @@ class _HomePageState extends State<HomePage> {
     List<Product> results = [];
     if (query.isNotEmpty) {
       // Search in all product lists
-      results.addAll(shirts.where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase())));
-      results.addAll(dress.where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase())));
-      results.addAll(shoes.where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase())));
-      results.addAll(pant.where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase())));
-      results.addAll(tie.where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase())));
-      results.addAll(productProvider.getNewAchiesList.where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase())));
-      results.addAll(productProvider.getHomeFutureList.where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase())));
-      results.addAll(productProvider.getHomeAchiveList.where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase())));
+      results.addAll(
+        shirts.where((p) => p.name.toLowerCase().contains(query.toLowerCase())),
+      );
+      results.addAll(
+        dress.where((p) => p.name.toLowerCase().contains(query.toLowerCase())),
+      );
+      results.addAll(
+        shoes.where((p) => p.name.toLowerCase().contains(query.toLowerCase())),
+      );
+      results.addAll(
+        pant.where((p) => p.name.toLowerCase().contains(query.toLowerCase())),
+      );
+      results.addAll(
+        tie.where((p) => p.name.toLowerCase().contains(query.toLowerCase())),
+      );
+      results.addAll(
+        productProvider.getNewAchiesList.where(
+          (p) => p.name.toLowerCase().contains(query.toLowerCase()),
+        ),
+      );
+      results.addAll(
+        productProvider.getHomeFutureList.where(
+          (p) => p.name.toLowerCase().contains(query.toLowerCase()),
+        ),
+      );
+      results.addAll(
+        productProvider.getHomeAchiveList.where(
+          (p) => p.name.toLowerCase().contains(query.toLowerCase()),
+        ),
+      );
     }
     setState(() {
       _searchResult =
@@ -447,24 +481,25 @@ class _HomePageState extends State<HomePage> {
       key: _key,
       drawer: _buildMyDrawer(),
       appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-          // Show TextField in AppBar when searching
-          controller: _searchController,
-          onChanged:
-          _searchProducts, // Call _searchProducts on text change
-          autofocus: true,
-          style: TextStyle(color: Colors.black),
-          decoration: InputDecoration(
-            hintText: "Tìm kiếm sản phẩm...",
-            hintStyle: TextStyle(color: Colors.grey),
-            border: InputBorder.none,
-          ),
-        )
-            : Text("HomePage",
-            style: TextStyle(
-                color: Colors
-                    .black)), // Show "HomePage" title when not searching
+        title:
+            _isSearching
+                ? TextField(
+                  // Show TextField in AppBar when searching
+                  controller: _searchController,
+                  onChanged:
+                      _searchProducts, // Call _searchProducts on text change
+                  autofocus: true,
+                  style: TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    hintText: "Tìm kiếm sản phẩm...",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                )
+                : Text(
+                  "HomePage",
+                  style: TextStyle(color: Colors.black),
+                ), // Show "HomePage" title when not searching
         centerTitle: true,
         elevation: 0.0,
         backgroundColor: Colors.white,
@@ -482,7 +517,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               setState(() {
                 _isSearching =
-                !_isSearching; // Toggle search state on button press
+                    !_isSearching; // Toggle search state on button press
                 if (!_isSearching) {
                   // Clear search query and results when closing search
                   _searchController.clear();
@@ -498,20 +533,21 @@ class _HomePageState extends State<HomePage> {
         height: double.infinity,
         width: double.infinity,
         margin: EdgeInsets.symmetric(horizontal: 20),
-        child: _isSearching
-            ? _buildSearchResult() // Show search results if searching
-            : ListView(
-          // Otherwise show the main page content
-          shrinkWrap: true,
-          physics: BouncingScrollPhysics(),
-          children: [
-            _buildImageSlider(),
-            _buildCategory(),
-            SizedBox(height: 20),
-            _buildFeatured(),
-            _buildNewAchives(),
-          ],
-        ),
+        child:
+            _isSearching
+                ? _buildSearchResult() // Show search results if searching
+                : ListView(
+                  // Otherwise show the main page content
+                  shrinkWrap: true,
+                  physics: BouncingScrollPhysics(),
+                  children: [
+                    _buildImageSlider(),
+                    _buildCategory(),
+                    SizedBox(height: 20),
+                    _buildFeatured(),
+                    _buildNewAchives(),
+                  ],
+                ),
       ),
     );
   }
@@ -531,28 +567,29 @@ class _HomePageState extends State<HomePage> {
       return GridView.count(
         crossAxisCount: 2,
         childAspectRatio: 0.7,
-        children: _searchResult.map((product) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => DetailScreen(
-                    image: product.image,
-                    name: product.name,
-                    price: product.price,
-                  ),
+        children:
+            _searchResult.map((product) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder:
+                          (context) => DetailScreen(
+                            image: product.image,
+                            name: product.name,
+                            price: product.price,
+                          ),
+                    ),
+                  );
+                },
+                child: SingleProduct(
+                  image: product.image,
+                  name: product.name,
+                  price: product.price,
                 ),
               );
-            },
-            child: SingleProduct(
-              image: product.image,
-              name: product.name,
-              price: product.price,
-            ),
-          );
-        }).toList(),
+            }).toList(),
       );
     }
   }
 }
-

@@ -69,6 +69,7 @@ class AdminProductProvider with ChangeNotifier {
               name: data["name"] ?? '',
               price: (data["price"] ?? 0.0).toDouble(),
               image: data["image"] ?? '',
+              description: data["description"] ?? '',
             );
           }).toList();
 
@@ -102,6 +103,7 @@ class AdminProductProvider with ChangeNotifier {
               name: data["name"] ?? '',
               price: (data["price"] ?? 0.0).toDouble(),
               image: data["image"] ?? '',
+              description: data["description"] ?? '',
             );
           }).toList();
 
@@ -279,6 +281,46 @@ class AdminProductProvider with ChangeNotifier {
 
       _newAchieveProducts.removeWhere((product) => product.id == productId);
       notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Thêm phương thức edit cho feature product
+  Future<void> editFeatureProduct(Product product) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("products")
+          .doc("qtZQegLgnUOMbI9WRusO")
+          .collection("featureproduct")
+          .doc(product.id)
+          .update(product.toMap());
+
+      final index = _featureProducts.indexWhere((p) => p.id == product.id);
+      if (index != -1) {
+        _featureProducts[index] = product;
+        notifyListeners();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Thêm phương thức edit cho new achieve product
+  Future<void> editNewAchieveProduct(Product product) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("products")
+          .doc("qtZQegLgnUOMbI9WRusO")
+          .collection("newachives")
+          .doc(product.id)
+          .update(product.toMap());
+
+      final index = _newAchieveProducts.indexWhere((p) => p.id == product.id);
+      if (index != -1) {
+        _newAchieveProducts[index] = product;
+        notifyListeners();
+      }
     } catch (e) {
       rethrow;
     }

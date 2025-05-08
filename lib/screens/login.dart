@@ -1,4 +1,5 @@
 import 'package:e_commerical/screens/admin/layout/admin_layout.dart';
+import 'package:e_commerical/screens/homepage.dart';
 import 'package:e_commerical/screens/signup.dart';
 import 'package:e_commerical/widgets/changescreen.dart';
 import 'package:e_commerical/widgets/mybutton.dart';
@@ -7,6 +8,7 @@ import 'package:e_commerical/widgets/passwordtextformfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -106,26 +108,57 @@ class _LoginState extends State<Login> {
     final FormState? form = _formKey.currentState;
     if (form!.validate()) {
       try {
+        // Đăng nhập với Firebase Auth
         UserCredential result = await FirebaseAuth.instance
             .signInWithEmailAndPassword(
               email: email!.trim(),
               password: password!.trim(),
             );
 
-        // Check if the user is admin
-        if (email!.trim() == 'admin@gmail.com') {
-          // Navigate to AdminLayout
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const AdminLayout()),
-            );
+        // Lấy thông tin user từ Firestore
+        DocumentSnapshot userDoc =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(result.user!.uid)
+                .get();
+
+        if (userDoc.exists) {
+          String role = userDoc.get('role') ?? 'user';
+          String storedPassword = userDoc.get('password') ?? '';
+
+          // Kiểm tra password
+          if (password!.trim() == storedPassword) {
+            if (mounted) {
+              if (role == 'admin') {
+                // Chuyển đến trang admin
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminLayout()),
+                );
+              } else {
+                // Chuyển đến trang user
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Đăng nhập thành công!")),
+                );
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
+              }
+            }
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Mật khẩu không đúng")),
+              );
+            }
           }
         } else {
-          // Regular user login
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Đăng nhập thành công!")),
+              const SnackBar(
+                content: Text("Không tìm thấy thông tin người dùng"),
+              ),
             );
           }
         }
