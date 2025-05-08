@@ -1,3 +1,4 @@
+import 'package:e_commerical/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../pages/dashboard_page.dart';
@@ -50,14 +51,21 @@ class _AdminLayoutState extends State<AdminLayout> {
     try {
       await FirebaseAuth.instance.signOut();
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Login()),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi đăng xuất: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi đăng xuất: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
+      rethrow;
     }
   }
 
@@ -140,41 +148,102 @@ class _AdminLayoutState extends State<AdminLayout> {
                 // Logout Button
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.white70),
-                    title: const Text(
-                      'Đăng xuất',
-                      style: TextStyle(color: Colors.white70),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: const Text('Xác nhận đăng xuất'),
-                              content: const Text(
-                                'Bạn có chắc chắn muốn đăng xuất?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Hủy'),
+                    child: ListTile(
+                      leading: const Icon(Icons.logout, color: Colors.red),
+                      title: const Text(
+                        'Đăng xuất',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: Row(
+                                  children: [
+                                    const Icon(Icons.logout, color: Colors.red),
+                                    const SizedBox(width: 10),
+                                    const Text('Xác nhận đăng xuất'),
+                                  ],
                                 ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    _handleLogout();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Colors.orange,
+                                      size: 48,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản admin?',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text(
+                                      'Hủy',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
                                   ),
-                                  child: const Text('Logout'),
-                                ),
-                              ],
-                            ),
-                      );
-                    },
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      Navigator.pop(context);
+                                      try {
+                                        await _handleLogout();
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Đăng xuất thành công',
+                                              ),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Lỗi đăng xuất: $e',
+                                              ),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                    child: const Text('Đăng xuất'),
+                                  ),
+                                ],
+                              ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],

@@ -19,6 +19,7 @@ class _ProductsPageState extends State<ProductsPage>
   final _imageUrlController = TextEditingController();
   bool _isAvailable = true;
   late TabController _tabController;
+  Product? _editingProduct;
 
   @override
   void initState() {
@@ -49,9 +50,14 @@ class _ProductsPageState extends State<ProductsPage>
     _priceController.clear();
     _descriptionController.clear();
     _imageUrlController.clear();
+    _editingProduct = null;
     setState(() {
       _isAvailable = true;
     });
+  }
+
+  String formatPrice(double price) {
+    return '\$${price.toStringAsFixed(2)}';
   }
 
   @override
@@ -186,7 +192,7 @@ class _ProductsPageState extends State<ProductsPage>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '₫${product.price.toStringAsFixed(0)}',
+                            formatPrice(product.price),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[700],
@@ -201,9 +207,8 @@ class _ProductsPageState extends State<ProductsPage>
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () {
-                            // TODO: Implement edit functionality
-                          },
+                          onPressed:
+                              () => _showEditProductDialog(product, isFeature),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
@@ -255,7 +260,7 @@ class _ProductsPageState extends State<ProductsPage>
                         labelText: 'Giá',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.attach_money),
-                        prefixText: '₫ ',
+                        prefixText: '\$ ',
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
@@ -408,6 +413,162 @@ class _ProductsPageState extends State<ProductsPage>
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Xóa'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showEditProductDialog(Product product, bool isFeature) {
+    _nameController.text = product.name;
+    _priceController.text = product.price.toString();
+    _descriptionController.text = product.description ?? '';
+    _imageUrlController.text = product.image;
+    _editingProduct = product;
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Chỉnh sửa sản phẩm ${isFeature ? "nổi bật" : "mới"}'),
+            content: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Tên sản phẩm',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.shopping_bag),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập tên sản phẩm';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: 'Giá',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.attach_money),
+                        prefixText: '\$ ',
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập giá';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Vui lòng nhập số hợp lệ';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Mô tả sản phẩm',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.description),
+                        alignLabelWithHint: true,
+                      ),
+                      maxLines: 3,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập mô tả sản phẩm';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _imageUrlController,
+                      decoration: const InputDecoration(
+                        labelText: 'URL hình ảnh',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.image),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Vui lòng nhập URL hình ảnh';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  _clearForm();
+                  _editingProduct = null;
+                  Navigator.pop(context);
+                },
+                child: const Text('Hủy'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    try {
+                      final updatedProduct = Product(
+                        id: _editingProduct!.id,
+                        name: _nameController.text,
+                        price: double.parse(_priceController.text),
+                        description: _descriptionController.text,
+                        image: _imageUrlController.text,
+                      );
+
+                      if (isFeature) {
+                        await Provider.of<AdminProductProvider>(
+                          context,
+                          listen: false,
+                        ).editFeatureProduct(updatedProduct);
+                      } else {
+                        await Provider.of<AdminProductProvider>(
+                          context,
+                          listen: false,
+                        ).editNewAchieveProduct(updatedProduct);
+                      }
+
+                      _clearForm();
+                      _editingProduct = null;
+                      Navigator.pop(context);
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Cập nhật sản phẩm thành công'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Lỗi: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Cập nhật'),
               ),
             ],
           ),

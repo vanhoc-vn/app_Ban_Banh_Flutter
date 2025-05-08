@@ -4,8 +4,10 @@ import 'package:e_commerical/widgets/mybutton.dart';
 import 'package:e_commerical/widgets/mytextformfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../widgets/passwordtextformfield.dart';
+import '../model/user_model.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -17,48 +19,73 @@ class Signup extends StatefulWidget {
 final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-
 String p =
-    r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,4}$))';
 RegExp regExp = RegExp(p);
 bool obserText = true;
 String? email;
 String? password;
+String? userName;
+String? phoneNumber;
 
 class _SignupState extends State<Signup> {
   void validation() async {
     final FormState? form = _formKey.currentState;
     if (form!.validate()) {
       try {
+        // Tạo user trong Authentication
         UserCredential result = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-            email: email!.trim(), password: password!.trim());
-        print(result.user!.uid);
+              email: email!.trim(),
+              password: password!.trim(),
+            );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Đăng ký thành công!")),
+        // Tạo user trong Firestore
+        UserModel userModel = UserModel(
+          uid: result.user!.uid,
+          email: email!.trim(),
+          password: password!.trim(),
+          phone: phoneNumber!.trim(),
+          userName: userName!.trim(),
+          role: 'user',
         );
 
-        // ✅ Sau khi đăng ký thành công, chuyển về màn hình Login
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const Login()),
-        );
+        // Lưu vào Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(result.user!.uid)
+            .set(userModel.toMap());
 
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("Đăng ký thành công!")));
+
+          // Chuyển về màn hình Login
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const Login()),
+          );
+        }
       } on FirebaseAuthException catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? "Lỗi không xác định")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.message ?? "Lỗi không xác định")),
+          );
+        }
       }
     }
   }
-
 
   Widget _buildAllTextFormField() {
     return Column(
       children: <Widget>[
         MyTextFormField(
           name: "UserName",
-          onChanged: (value) {},
+          onChanged: (value) {
+            setState(() {
+              userName = value;
+            });
+          },
           validator: (value) {
             if (value == null || value.isEmpty) {
               return "Vui lòng điền User Name.";
@@ -80,8 +107,8 @@ class _SignupState extends State<Signup> {
             if (value == null || value.isEmpty) {
               return "Vui lòng nhập Email";
             } else if (!RegExp(
-                r"^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
-                .hasMatch(value)) {
+              r"^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$",
+            ).hasMatch(value)) {
               return "Email không hợp lệ";
             }
             return null;
@@ -114,12 +141,15 @@ class _SignupState extends State<Signup> {
           },
         ),
 
-
         const SizedBox(height: 15),
 
         MyTextFormField(
           name: "Phone Number",
-          onChanged: (value) {},
+          onChanged: (value) {
+            setState(() {
+              phoneNumber = value;
+            });
+          },
           validator: (value) {
             if (value == null || value.isEmpty) {
               return "Vui lòng nhập số điện thoại.";
@@ -152,18 +182,12 @@ class _SignupState extends State<Signup> {
                   const SizedBox(height: 50),
                   const Text(
                     "Register",
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 30),
                   _buildAllTextFormField(),
                   const SizedBox(height: 30),
-                  MyButton(
-                    name: "Sign Up",
-                    onPressed: validation,
-                  ),
+                  MyButton(name: "Sign Up", onPressed: validation),
                   const SizedBox(height: 20),
                   ChangeScreen(
                     name: "Login",
