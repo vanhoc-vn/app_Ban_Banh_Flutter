@@ -48,11 +48,9 @@ class _AdminLayoutState extends State<AdminLayout> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Kiểm tra nếu là mobile (width < 600)
         if (constraints.maxWidth < 600) {
           return _buildMobileLayout();
         }
-        // Nếu là tablet hoặc desktop
         return _buildDesktopLayout();
       },
     );
@@ -77,18 +75,11 @@ class _AdminLayoutState extends State<AdminLayout> {
               DrawerHeader(
                 decoration: const BoxDecoration(color: Colors.deepPurple),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Image.asset(
                       'assets/images/logo.png',
                       height: 40,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.shopping_bag,
-                          color: Colors.white,
-                          size: 30,
-                        );
-                      },
                     ),
                     const SizedBox(height: 10),
                     const Text(

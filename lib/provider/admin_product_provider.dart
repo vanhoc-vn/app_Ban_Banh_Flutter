@@ -17,36 +17,36 @@ class AdminProductProvider with ChangeNotifier {
   List<Product> get featureProducts => _featureProducts;
   List<Product> get newAchieveProducts => _newAchieveProducts;
 
-  // Fetch all products
-  Future<void> fetchProducts() async {
-    _isLoading = true;
-    notifyListeners();
+  // // Fetch all products
+  // Future<void> fetchProducts() async {
+  //   _isLoading = true;
+  //   notifyListeners();
 
-    try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection("products").get();
+  //   try {
+  //     QuerySnapshot snapshot =
+  //         await FirebaseFirestore.instance.collection("products").get();
 
-      _products =
-          snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return Product(
-              id: doc.id,
-              name: data["name"] ?? '',
-              price: (data["price"] ?? 0.0).toDouble(),
-              description: data["description"] ?? '',
-              image: data["image"] ?? '',
-              isAvailable: data["isAvailable"] ?? true,
-            );
-          }).toList();
+  //     _products =
+  //         snapshot.docs.map((doc) {
+  //           final data = doc.data() as Map<String, dynamic>;
+  //           return Product(
+  //             id: doc.id,
+  //             name: data["name"] ?? '',
+  //             price: (data["price"] ?? 0.0).toDouble(),
+  //             description: data["description"] ?? '',
+  //             image: data["image"] ?? '',
+  //             isAvailable: data["isAvailable"] ?? true,
+  //           );
+  //         }).toList();
 
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      notifyListeners();
-      rethrow;
-    }
-  }
+  //     _isLoading = false;
+  //     notifyListeners();
+  //   } catch (e) {
+  //     _isLoading = false;
+  //     notifyListeners();
+  //     rethrow;
+  //   }
+  // }
 
   // Fetch feature products
   Future<void> fetchFeatureProducts() async {
