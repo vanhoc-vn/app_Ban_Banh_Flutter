@@ -4,28 +4,83 @@ import '../model/cartmodel.dart';
 import '../model/product.dart';
 
 class ProductProvider with ChangeNotifier {
+  // --- DANH SÁCH SẢN PHẨM ---
   List<Product> feature = [];
   List<Product> homeFeature = [];
   List<Product> homeAchive = [];
   List<Product> newAchives = [];
 
+  // Trạng thái tải dữ liệu
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  // --- QUẢN LÝ GIỎ HÀNG ---
   final List<CartModel> _cartModelList = [];
   List<CartModel> get getCartModelList => _cartModelList;
   int get getCartModelListLength => _cartModelList.length;
 
+  // --- LOGIC GỘP TẤT CẢ SẢN PHẨM (MỚI) ---
+  // Getter này gộp tất cả các danh sách lại thành một để hiển thị toàn bộ menu
+  List<Product> get getAllProductsList {
+    return [
+      ...homeFeature,
+      ...homeAchive,
+      ...feature,
+      ...newAchives,
+    ];
+  }
+
+  // Thêm sản phẩm vào giỏ hàng
   void getCartData({String? name, String? image, int? quantity, double? price}) {
     if (name != null && image != null && quantity != null && price != null) {
       _cartModelList.add(
         CartModel(price: price, name: name, image: image, quantity: quantity),
       );
       notifyListeners();
-    } else {
-      debugPrint("Warning: Some cart data is null and cannot be added.");
     }
   }
 
-  // Lưu ý: docId "qtZQegLgnUOMbI9WRusO" phải tồn tại trong products
+  // Cập nhật số lượng hoặc xóa sản phẩm khỏi giỏ
+  void updateQuantity(String itemName, int newQuantity) {
+    final index = _cartModelList.indexWhere((item) => item.name == itemName);
+    if (index != -1) {
+      if (newQuantity > 0) {
+        _cartModelList[index].quantity = newQuantity;
+      } else {
+        _cartModelList.removeAt(index);
+      }
+      notifyListeners();
+    }
+  }
+
+  void clearCart() {
+    _cartModelList.clear();
+    notifyListeners();
+  }
+
+  // --- TRUY VẤN FIREBASE ---
   static const _rootProductsDocId = "qtZQegLgnUOMbI9WRusO";
+
+  // Hàm tải tất cả dữ liệu cùng lúc (Dùng cho trang Tất cả sản phẩm)
+  Future<void> fetchAllData() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Chạy song song các hàm fetch để tiết kiệm thời gian
+      await Future.wait([
+        getFutureData(),
+        getHomeFeatureData(),
+        getHomeAchiveData(),
+        getNewAchiveData(),
+      ]);
+    } catch (e) {
+      debugPrint("fetchAllData error: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> getFutureData() async {
     final newList = <Product>[];
@@ -37,10 +92,8 @@ class ProductProvider with ChangeNotifier {
           .get();
 
       for (final doc in snap.docs) {
-        final data = doc.data();
-        newList.add(Product.fromMap(data));
+        newList.add(Product.fromMap(doc.data()));
       }
-
       feature = newList;
       notifyListeners();
     } catch (e) {
@@ -94,7 +147,6 @@ class ProductProvider with ChangeNotifier {
       for (final doc in snap.docs) {
         newList.add(Product.fromMap(doc.data()));
       }
-
       newAchives = newList;
       notifyListeners();
     } catch (e) {
@@ -103,21 +155,4 @@ class ProductProvider with ChangeNotifier {
   }
 
   List<Product> get getNewAchiesList => newAchives;
-
-  void updateQuantity(String itemName, int newQuantity) {
-    final index = _cartModelList.indexWhere((item) => item.name == itemName);
-    if (index != -1) {
-      if (newQuantity > 0) {
-        _cartModelList[index].quantity = newQuantity;
-      } else {
-        _cartModelList.removeAt(index);
-      }
-      notifyListeners();
-    }
-  }
-
-  void clearCart() {
-    _cartModelList.clear();
-    notifyListeners();
-  }
 }

@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerical/screens/detailscreen.dart';
 import 'package:e_commerical/screens/listproduct.dart';
 import 'package:e_commerical/screens/welcomescreen.dart';
+import 'package:e_commerical/screens/donhang.dart';
+import 'package:e_commerical/screens/all_products_page.dart';
+import 'package:e_commerical/screens/ai_chat_screen.dart'; // THÊM IMPORT NÀY
 import 'package:e_commerical/widgets/singleproduct.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,12 +17,13 @@ import '../provider/product_provider.dart';
 import '../screens/cartscreen.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  // Đồng bộ màu sắc với màn hình Auth
   static const Color _primary = Color(0xFFF23B7E);
   static const Color _bg = Color(0xFFFFF6FB);
 
@@ -34,7 +38,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Tải dữ liệu từ Firebase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final catProv = Provider.of<CategoryProvider>(context, listen: false);
       catProv.getShirtData();
@@ -44,9 +47,7 @@ class _HomePageState extends State<HomePage> {
       catProv.getTieData();
 
       final prodProv = Provider.of<ProductProvider>(context, listen: false);
-      prodProv.getNewAchiveData();
-      prodProv.getFutureData();
-      prodProv.getHomeFeatureData();
+      prodProv.fetchAllData();
     });
     _loadUserProfile();
   }
@@ -56,17 +57,18 @@ class _HomePageState extends State<HomePage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-        setState(() {
-          _userName = doc.data()?['userName'] ?? 'Khách';
-          _loadingProfile = false;
-        });
+        if (mounted) {
+          setState(() {
+            _userName = doc.data()?['userName'] ?? 'Khách';
+            _loadingProfile = false;
+          });
+        }
       }
     } catch (_) {
-      setState(() => _loadingProfile = false);
+      if (mounted) setState(() => _loadingProfile = false);
     }
   }
 
-  // --- Widget: Drawer Tùy Chỉnh ---
   Widget _buildDrawer() {
     return Drawer(
       backgroundColor: _bg,
@@ -79,15 +81,26 @@ class _HomePageState extends State<HomePage> {
             accountEmail: Text(FirebaseAuth.instance.currentUser?.email ?? ""),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
-              child: Image.asset('images/dream_cake_2.png', width: 50),
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Image.asset('images/dream_cake_2.png', fit: BoxFit.contain),
+              ),
             ),
           ),
           _buildDrawerItem(Icons.home, "Trang chủ", () => Navigator.pop(context), true),
+          _buildDrawerItem(Icons.cake_rounded, "Tất cả sản phẩm", () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AllProductsPage()));
+          }, false),
           _buildDrawerItem(Icons.shopping_cart, "Giỏ hàng", () {
             Navigator.pop(context);
             Navigator.push(context, MaterialPageRoute(builder: (_) => CartScreen()));
           }, false),
-          _buildDrawerItem(Icons.info, "Về chúng tôi", () {}, false),
+          _buildDrawerItem(Icons.assignment_turned_in_rounded, "Đơn hàng của tôi", () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderHistoryScreen()));
+          }, false),
+          _buildDrawerItem(Icons.info_outline, "Về chúng tôi", () => Navigator.pop(context), false),
           const Spacer(),
           _buildDrawerItem(Icons.logout, "Đăng xuất", () async {
             await FirebaseAuth.instance.signOut();
@@ -108,7 +121,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // --- Widget: Slider Quảng Cáo ---
   Widget _buildSlider() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -128,7 +140,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // --- Widget: Danh mục bánh (Đã sửa lỗi listen) ---
   Widget _buildCategorySection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +165,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // --- Widget: Header của Section ---
   Widget _buildSectionHeader(String title, List<Product> products) {
     return Padding(
       padding: const EdgeInsets.only(top: 25, bottom: 15),
@@ -164,11 +174,28 @@ class _HomePageState extends State<HomePage> {
           Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ListProduct(name: title, snapShot: products))),
-            child: const Text("Tất cả", style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
+            child: const Text("Xem thêm", style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
     );
+  }
+
+  void _searchProducts(String query) {
+    final catProv = Provider.of<CategoryProvider>(context, listen: false);
+    final prodProv = Provider.of<ProductProvider>(context, listen: false);
+
+    List<Product> allProducts = [
+      ...catProv.getShirtList, ...catProv.getDressList, ...catProv.getshoesList,
+      ...catProv.getPantList, ...catProv.getTieList,
+      ...prodProv.getNewAchiesList, ...prodProv.getHomeFutureList,
+    ];
+
+    setState(() {
+      _searchResult = allProducts
+          .where((p) => p.name.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
   }
 
   @override
@@ -185,45 +212,85 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         leading: IconButton(icon: const Icon(Icons.menu, color: _primary), onPressed: () => _key.currentState?.openDrawer()),
         title: _isSearching
-            ? TextField(controller: _searchController, decoration: const InputDecoration(hintText: "Tìm bánh ngon...", border: InputBorder.none), autofocus: true)
+            ? TextField(
+          controller: _searchController,
+          onChanged: _searchProducts,
+          decoration: const InputDecoration(hintText: "Tìm bánh ngon...", border: InputBorder.none),
+          autofocus: true,
+        )
             : Image.asset('images/dream_cake_2.png', height: 40),
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search, color: _primary),
-            onPressed: () => setState(() => _isSearching = !_isSearching),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) _searchController.clear();
+              });
+            },
           ),
           IconButton(icon: const Icon(Icons.shopping_basket_outlined, color: _primary), onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CartScreen()));
           }),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          children: [
-            _buildSlider(),
-            _buildCategorySection(),
-            _buildSectionHeader("Sản phẩm nổi bật", productProvider.getHomeFutureList),
-            _buildProductGrid(productProvider.getHomeFutureList),
-            _buildSectionHeader("Sản phẩm mới", productProvider.getNewAchiesList),
-            _buildProductGrid(productProvider.getNewAchiesList),
-            const SizedBox(height: 20),
-          ],
-        ),
+
+      // --- THÊM NÚT BONG BÓNG AI TẠI ĐÂY ---
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: _primary,
+        elevation: 6,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AIChatScreen()),
+          );
+        },
+        child: const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
+      ),
+
+      body: _isSearching ? _buildSearchResult() : _buildMainContent(productProvider),
+    );
+  }
+
+  Widget _buildMainContent(ProductProvider productProvider) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Column(
+        children: [
+          _buildSlider(),
+          _buildCategorySection(),
+          _buildSectionHeader("Sản phẩm nổi bật", productProvider.getHomeFutureList),
+          _buildProductGrid(productProvider.getHomeFutureList),
+          _buildSectionHeader("Sản phẩm mới", productProvider.getNewAchiesList),
+          _buildProductGrid(productProvider.getNewAchiesList),
+          const SizedBox(height: 20),
+        ],
       ),
     );
+  }
+
+  Widget _buildSearchResult() {
+    if (_searchResult.isEmpty) return const Center(child: Text("Không tìm thấy bánh bạn yêu cầu"));
+    return _buildProductGrid(_searchResult);
   }
 
   Widget _buildProductGrid(List<Product> products) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 0.75, crossAxisSpacing: 15, mainAxisSpacing: 15),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, childAspectRatio: 0.75, crossAxisSpacing: 15, mainAxisSpacing: 15),
       itemCount: products.length > 4 ? 4 : products.length,
       itemBuilder: (ctx, i) {
         final p = products[i];
         return GestureDetector(
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(image: p.image, name: p.name, price: p.price, description: p.description ?? ""))),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(
+              image: p.image,
+              name: p.name,
+              price: p.price,
+              description: p.description ?? "Bánh ngon mỗi ngày từ Dream Cake."
+          ))),
           child: SingleProduct(image: p.image, name: p.name, price: p.price),
         );
       },
@@ -231,13 +298,12 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// --- Widget Danh Mục Item ---
 class _CategoryItem extends StatelessWidget {
   final String name;
   final int bgColor;
   final String imagePath;
 
-  _CategoryItem(this.name, this.bgColor, this.imagePath);
+  const _CategoryItem(this.name, this.bgColor, this.imagePath);
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +314,8 @@ class _CategoryItem extends StatelessWidget {
       case "Bánh Trung Thu": data = provider.getShirtList; break;
       case "Bánh Mì": data = provider.getshoesList; break;
       case "Mỳ Gối": data = provider.getPantList; break;
-      default: data = provider.getTieList;
+      case "Bánh Kem": data = provider.getTieList; break;
+      default: data = [];
     }
 
     return GestureDetector(
@@ -261,7 +328,11 @@ class _CategoryItem extends StatelessWidget {
             Container(
               height: 65,
               width: 65,
-              decoration: BoxDecoration(color: Color(bgColor), borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)]),
+              decoration: BoxDecoration(
+                  color: Color(bgColor),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)]
+              ),
               child: Center(child: Image.network(imagePath, width: 35)),
             ),
             const SizedBox(height: 8),

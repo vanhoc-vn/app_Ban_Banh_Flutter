@@ -2,72 +2,68 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provider/product_provider.dart';
 import '../widgets/cartsingleproduct.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // THÊM ĐỂ LẤY UID THẬT
 import '../model/cartmodel.dart';
 
 class CheckOutScreen extends StatefulWidget {
+  const CheckOutScreen({super.key});
+
   @override
-  _CheckOutScreenState createState() => _CheckOutScreenState();
+  State<CheckOutScreen> createState() => _CheckOutScreenState();
 }
 
 class _CheckOutScreenState extends State<CheckOutScreen> {
-  final TextStyle myStyle = TextStyle(fontSize: 18);
+  // Màu sắc đồng bộ Dream Cake
+  static const Color _primary = Color(0xFFF23B7E);
+  static const Color _bg = Color(0xFFFFF6FB);
+
+  final TextStyle myStyle = const TextStyle(fontSize: 16, fontWeight: FontWeight.w500);
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   bool _isOrdering = false;
-  bool _firebaseInitialized = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeFirebase();
-  }
-
-  Future<void> _initializeFirebase() async {
-    await Firebase.initializeApp();
-    if (mounted) {
-      setState(() {
-        _firebaseInitialized = true;
-      });
-    }
-  }
-
-  Future<void> _addOrder(
-      BuildContext context, List<CartModel> cartList, double finalTotal) async {
-    if (!_firebaseInitialized) return;
+  // HÀM QUAN TRỌNG: Lưu đơn hàng với UID người dùng thật
+  Future<void> _addOrder(BuildContext context, List<CartModel> cartList, double finalTotal) async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isOrdering = true);
       try {
+        // Lấy thông tin người dùng đang đăng nhập
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) throw "Bạn cần đăng nhập để đặt hàng";
+
         String address = _addressController.text.trim();
         CollectionReference orders = FirebaseFirestore.instance.collection('orders');
         DocumentReference orderRef = orders.doc();
-        String userId = 'user123'; // Replace with actual user ID
 
+        // Cấu trúc dữ liệu đơn hàng khớp với OrderProvider
         Map<String, dynamic> orderData = {
           'orderId': orderRef.id,
-          'userId': userId,
+          'userId': user.uid, // ĐÃ SỬA: Lấy UID từ Firebase Auth thay vì 'user123'
           'products': cartList.map((item) => {
-            'productId': item.name,
             'name': item.name,
             'quantity': item.quantity,
             'price': item.price,
           }).toList(),
           'totalAmount': finalTotal,
-          'status': 'pending', // Trạng thái đơn hàng
+          'status': 'pending', // Trạng thái mặc định
           'shippingAddress': {
             'street': address,
           },
           'orderDate': FieldValue.serverTimestamp(),
         };
 
-
         await orderRef.set(orderData);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Order placed successfully!')),
+            const SnackBar(
+              content: Text('Đặt hàng thành công!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
+          // Xóa giỏ hàng sau khi đặt thành công
           Provider.of<ProductProvider>(context, listen: false).clearCart();
           _addressController.clear();
           Navigator.of(context).pop();
@@ -75,7 +71,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       } catch (error) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to place order: $error')),
+            SnackBar(content: Text('Lỗi: $error'), backgroundColor: Colors.red),
           );
         }
       } finally {
@@ -90,124 +86,144 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     super.dispose();
   }
 
-  Widget _buildBottomDetail({required String startName, required String endName}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Text(startName, style: myStyle),
-          Text(endName, style: myStyle),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final productProvider = Provider.of<ProductProvider>(context);
     final cartList = productProvider.getCartModelList;
 
-    double totalPrice = cartList.fold(
-        0.0, (sum, item) => sum + (item.price ?? 0.0) * (item.quantity ?? 0));
+    // Tính toán tiền bạc
+    double totalPrice = cartList.fold(0.0, (sum, item) => sum + (item.price ?? 0.0) * (item.quantity ?? 0));
     double discount = totalPrice * 0.03;
-    double shippingCost = 60.00;
+    double shippingCost = 2.0; // Phí ship tính theo $ cho đồng bộ
     double finalTotal = totalPrice - discount + shippingCost;
 
     return Scaffold(
+      backgroundColor: _bg,
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Checkout Page", style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
+        title: const Text("Thanh toán", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
-      bottomNavigationBar: Container(
-        height: 70,
-        margin: EdgeInsets.symmetric(horizontal: 10),
-        padding: EdgeInsets.only(bottom: 10),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Color(0xff746bc9)),
-          onPressed: _isOrdering || !_firebaseInitialized
-              ? null
-              : () => _addOrder(context, cartList, finalTotal),
-          child: _isOrdering
-              ? CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-          )
-              : Text("Buy", style: TextStyle(fontSize: 18, color: Colors.white)),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      bottomNavigationBar: _buildBottomButton(context, cartList, finalTotal),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(15),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              TextFormField(
-                controller: _addressController,
-                decoration: InputDecoration(
-                  labelText: 'Shipping Address',
-                  border: OutlineInputBorder(),
+            children: [
+              // Ô nhập địa chỉ bo tròn hiện đại
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
                 ),
-                validator: (value) =>
-                value == null || value.isEmpty ? 'Please enter your shipping address' : null,
-              ),
-              SizedBox(height: 20),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: cartList.length,
-                  itemBuilder: (ctx, index) {
-                    final cartItem = cartList[index];
-                    return Column(
-                      children: [
-                        CartSingleProduct(
-                          quantity: cartItem.quantity ?? 0,
-                          image: cartItem.image ?? '',
-                          name: cartItem.name ?? '',
-                          price: cartItem.price ?? 0.0,
-                          onQuantityChanged: (newQuantity) {
-                            productProvider.updateQuantity(cartItem.name!, newQuantity);
-                            setState(() {});
-                          },
-                        ),
-                        _buildBottomDetail(
-                          startName: "Your Price",
-                          endName: "\$${(cartItem.price ?? 0.0).toStringAsFixed(2)}",
-                        ),
-                        if (index == cartList.length - 1) ...[
-                          _buildBottomDetail(
-                            startName: "Discount",
-                            endName: "-\$${discount.toStringAsFixed(2)}",
-                          ),
-                          _buildBottomDetail(
-                            startName: "Shipping",
-                            endName: "\$${shippingCost.toStringAsFixed(2)}",
-                          ),
-                          Divider(thickness: 1.2),
-                          _buildBottomDetail(
-                            startName: "Total",
-                            endName: "\$${finalTotal.toStringAsFixed(2)}",
-                          ),
-                        ],
-                      ],
-                    );
-                  },
+                child: TextFormField(
+                  controller: _addressController,
+                  decoration: const InputDecoration(
+                    labelText: 'Địa chỉ nhận bánh',
+                    prefixIcon: Icon(Icons.location_on, color: _primary),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.all(15),
+                  ),
+                  validator: (value) => value == null || value.isEmpty ? 'Vui lòng nhập địa chỉ' : null,
                 ),
               ),
+              const SizedBox(height: 25),
+
+              const Text("Tóm tắt đơn hàng", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 15),
+
+              // Danh sách sản phẩm
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: cartList.length,
+                itemBuilder: (ctx, index) {
+                  final item = cartList[index];
+                  return CartSingleProduct(
+                    quantity: item.quantity ?? 0,
+                    image: item.image ?? '',
+                    name: item.name ?? '',
+                    price: item.price ?? 0.0,
+                    onQuantityChanged: (newQty) => productProvider.updateQuantity(item.name!, newQty),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 20),
+              _buildPriceSummary(totalPrice, discount, shippingCost, finalTotal),
+              const SizedBox(height: 20),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPriceSummary(double total, double disc, double ship, double finalT) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          _summaryRow("Tạm tính", "\$${total.toStringAsFixed(2)}"),
+          _summaryRow("Giảm giá (3%)", "-\$${disc.toStringAsFixed(2)}"),
+          _summaryRow("Phí vận chuyển", "\$${ship.toStringAsFixed(2)}"),
+          const Divider(height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Tổng thanh toán", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text("\$${finalT.toStringAsFixed(2)}",
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _primary)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.grey)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomButton(BuildContext context, List<CartModel> list, double total) {
+    return Container(
+      height: 80,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.black12, width: 0.5)),
+      ),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _primary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 0,
+        ),
+        onPressed: _isOrdering ? null : () => _addOrder(context, list, total),
+        child: _isOrdering
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text("XÁC NHẬN ĐẶT BÁNH", style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
