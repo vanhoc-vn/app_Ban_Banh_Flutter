@@ -1,113 +1,70 @@
-import 'package:e_commerical/screens/login.dart';
-import 'package:e_commerical/screens/signup.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
+import '../main.dart'; // Để gọi AuthGate
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  static const Color primary = Color(0xFFF23B7E);
+  static const Color bg = Color(0xFFFFF6FB);
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Tự động chuyển trạng thái sau 3 giây
+    Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        // Chuyển đến AuthGate để kiểm tra login thay vì vào thẳng Login screen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (ctx) => const AuthGate()),
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 30),
+      backgroundColor: bg,
+      body: SafeArea(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Container(
-                height: 600,
-                width: double.infinity,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    Container(
-                      height: 350,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: AssetImage("images/welcomeScreen.png"),
-                        ),
-                      ),
-                    ),
-                    Text(
-                      "Welcome",
-                      style: TextStyle(
-                        fontSize: 35,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    Container(
-                      height: 60,
-                      width: double.infinity,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            "Ready To Start Shopping Sign Up",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            "To get Started",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      children: [
-                        Container(
-                          height: 45,
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xff746bc9),
-                            ),
-                            child: Text(
-                              "Sign Up",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (ctx) => Signup(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Already have an account?",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Color(0xff746bc9),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(builder: (ctx) => Login()),
-                                );
-                              },
-                              child: Text(
-                                "Login",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Color(0xff746bc9),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+              // Logo
+              SizedBox(
+                height: 220,
+                child: Image.asset(
+                  "images/dream_cake_2.png",
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.cake, size: 100, color: primary),
                 ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                "Welcome to Dream Cake",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Sẵn sàng mua sắm những chiếc bánh ngọt xinh?",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+              const SizedBox(height: 48),
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(primary),
               ),
             ],
           ),

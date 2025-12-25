@@ -5,138 +5,114 @@ import '../model/product.dart';
 
 class ProductProvider with ChangeNotifier {
   List<Product> feature = [];
-  Product? featureData;
+  List<Product> homeFeature = [];
+  List<Product> homeAchive = [];
+  List<Product> newAchives = [];
 
-  List<CartModel> _cartModelList = [];
+  final List<CartModel> _cartModelList = [];
   List<CartModel> get getCartModelList => _cartModelList;
   int get getCartModelListLength => _cartModelList.length;
 
   void getCartData({String? name, String? image, int? quantity, double? price}) {
     if (name != null && image != null && quantity != null && price != null) {
-      _cartModelList.add(CartModel(
-        price: price,
-        name: name,
-        image: image,
-        quantity: quantity,
-      ));
+      _cartModelList.add(
+        CartModel(price: price, name: name, image: image, quantity: quantity),
+      );
       notifyListeners();
     } else {
-      print("Warning: Some cart data is null and cannot be added.");
+      debugPrint("Warning: Some cart data is null and cannot be added.");
     }
   }
+
+  // Lưu ý: docId "qtZQegLgnUOMbI9WRusO" phải tồn tại trong products
+  static const _rootProductsDocId = "qtZQegLgnUOMbI9WRusO";
 
   Future<void> getFutureData() async {
-    List<Product> newList = [];
-    QuerySnapshot featureSnapShot = await FirebaseFirestore.instance
-        .collection("products")
-        .doc("qtZQegLgnUOMbI9WRusO")
-        .collection("featureproduct")
-        .get();
-    for (var element in featureSnapShot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product featureData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(featureData);
+    final newList = <Product>[];
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection("products")
+          .doc(_rootProductsDocId)
+          .collection("featureproduct")
+          .get();
+
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        newList.add(Product.fromMap(data));
+      }
+
+      feature = newList;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("getFutureData error: $e");
     }
-    feature = newList;
-    notifyListeners();
   }
 
-  List<Product> get getFutureList {
-    return feature;
-  }
-
-  List<Product> homeFeature = [];
-  Product? homeFeatureData;
+  List<Product> get getFutureList => feature;
 
   Future<void> getHomeFeatureData() async {
-    List<Product> newList = [];
-    QuerySnapshot featureSnapShot =
-    await FirebaseFirestore.instance.collection("homefeature").get();
-    for (var element in featureSnapShot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product featureData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(featureData);
+    final newList = <Product>[];
+    try {
+      final snap = await FirebaseFirestore.instance.collection("homefeature").get();
+      for (final doc in snap.docs) {
+        newList.add(Product.fromMap(doc.data()));
+      }
+      homeFeature = newList;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("getHomeFeatureData error: $e");
     }
-    homeFeature = newList;
-    notifyListeners();
   }
 
-  List<Product> get getHomeFutureList {
-    return homeFeature;
-  }
-
-  List<Product> homeAchive = [];
-  Product? homeAchiveData;
+  List<Product> get getHomeFutureList => homeFeature;
 
   Future<void> getHomeAchiveData() async {
-    List<Product> newList = [];
-    QuerySnapshot featureSnapShot =
-    await FirebaseFirestore.instance.collection("homeachive").get();
-    for (var element in featureSnapShot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product featureData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(featureData);
+    final newList = <Product>[];
+    try {
+      final snap = await FirebaseFirestore.instance.collection("homeachive").get();
+      for (final doc in snap.docs) {
+        newList.add(Product.fromMap(doc.data()));
+      }
+      homeAchive = newList;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("getHomeAchiveData error: $e");
     }
-    homeAchive = newList;
-    notifyListeners();
   }
 
-  List<Product> get getHomeAchiveList {
-    return homeAchive;
-  }
-
-  List<Product> newAchives = [];
-  Product? newAchivesData;
+  List<Product> get getHomeAchiveList => homeAchive;
 
   Future<void> getNewAchiveData() async {
-    List<Product> newList = [];
-    QuerySnapshot newAchivesSnapshot = await FirebaseFirestore.instance
-        .collection("products")
-        .doc("qtZQegLgnUOMbI9WRusO")
-        .collection("newachives")
-        .get();
-    for (var element in newAchivesSnapshot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product newAchivesData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(newAchivesData);
+    final newList = <Product>[];
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection("products")
+          .doc(_rootProductsDocId)
+          .collection("newachives")
+          .get();
+
+      for (final doc in snap.docs) {
+        newList.add(Product.fromMap(doc.data()));
+      }
+
+      newAchives = newList;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("getNewAchiveData error: $e");
     }
-    newAchives = newList;
-    notifyListeners();
   }
 
-  List<Product> get getNewAchiesList {
-    return newAchives;
-  }
+  List<Product> get getNewAchiesList => newAchives;
 
   void updateQuantity(String itemName, int newQuantity) {
-    // Tìm sản phẩm trong giỏ hàng theo tên.
-    int index = _cartModelList.indexWhere((item) => item.name == itemName);
+    final index = _cartModelList.indexWhere((item) => item.name == itemName);
     if (index != -1) {
-      // Nếu sản phẩm được tìm thấy
       if (newQuantity > 0) {
-        // Nếu số lượng mới lớn hơn 0, cập nhật số lượng.
         _cartModelList[index].quantity = newQuantity;
       } else {
-        // Nếu số lượng mới là 0, xóa sản phẩm khỏi giỏ hàng.
         _cartModelList.removeAt(index);
       }
-      notifyListeners(); // Báo cho các listener để rebuild UI.
+      notifyListeners();
     }
   }
 
@@ -145,4 +121,3 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

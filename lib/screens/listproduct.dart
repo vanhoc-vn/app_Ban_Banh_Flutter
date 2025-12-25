@@ -1,119 +1,136 @@
 import 'package:e_commerical/model/product.dart';
-import 'package:e_commerical/screens/detailscreen.dart'; // Import DetailScreen
+import 'package:e_commerical/screens/detailscreen.dart';
 import 'package:flutter/material.dart';
 
 class ListProduct extends StatelessWidget {
   final String name;
   final List<Product> snapShot;
 
-  ListProduct({required this.name, required this.snapShot});
+  const ListProduct({super.key, required this.name, required this.snapShot});
+
+  static const Color _primary = Color(0xFFF23B7E);
+  static const Color _bg = Color(0xFFFFF6FB);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _bg,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
-        iconTheme: IconThemeData(
-          color: Colors.black,
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: Text(
+          name,
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
         ),
+        centerTitle: true,
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {},
+            icon: const Icon(Icons.search, color: Colors.black87),
+            onPressed: () {
+              // Chức năng tìm kiếm trong danh mục (nếu cần)
+            },
           ),
         ],
       ),
-      body: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20),
-        child: ListView(
-          children: [
-            Column(
-              children: <Widget>[
-                Container(
-                  height: 50,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  height: 700,
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    scrollDirection: Axis.vertical,
-                    children: snapShot.map((product) { // Iterate through snapShot
-                      return _buildProductItem(product, context); // Build item
-                    }).toList(),
-                  ),
-                ),
-              ],
-            ),
-          ],
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: snapShot.isEmpty
+            ? const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cake_outlined, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                "Không có sản phẩm nào trong danh mục này",
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+            ],
+          ),
+        )
+            : GridView.builder(
+          physics: const BouncingScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.7,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+          ),
+          itemCount: snapShot.length,
+          itemBuilder: (context, index) {
+            final product = snapShot[index];
+            return _buildProductItem(product, context);
+          },
         ),
       ),
     );
   }
 
-  // New function to build each product item
   Widget _buildProductItem(Product product, BuildContext context) {
-    return GestureDetector( // Wrap with GestureDetector
+    return GestureDetector(
       onTap: () {
-        Navigator.of(context).push( // Navigate to DetailScreen on tap
+        // CẬP NHẬT: Truyền thêm description sang DetailScreen
+        Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (ctx) => DetailScreen( // Pass product details
+            builder: (ctx) => DetailScreen(
               image: product.image,
               name: product.name,
               price: product.price,
+              // Lấy mô tả từ Model (đã ánh xạ với product_details trên Firebase)
+              description: product.description ?? "Chưa có mô tả cho sản phẩm này.",
             ),
           ),
         );
       },
-      child: Card( // Use a Card for better UI
+      child: Card(
+        color: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shadowColor: Colors.black12.withOpacity(0.08),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Expanded( // Use Expanded to take up available space
-                child: Center(
-                  child: Image.network( // Use Image.network
-                    product.image,
-                    fit: BoxFit.cover,
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: double.infinity,
+                    color: Colors.grey.shade100,
+                    child: Image.network(
+                      product.image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.broken_image, size: 32, color: Colors.grey),
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 product.name,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.black87
+                ),
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                "\$${product.price.toStringAsFixed(2)}", // Format price
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                "\$ ${product.price.toStringAsFixed(2)}",
+                style: const TextStyle(
+                    fontSize: 15,
+                    color: _primary,
+                    fontWeight: FontWeight.bold
+                ),
               ),
             ],
           ),
@@ -122,4 +139,3 @@ class ListProduct extends StatelessWidget {
     );
   }
 }
-

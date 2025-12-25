@@ -12,12 +12,15 @@ class ProductsPage extends StatefulWidget {
 
 class _ProductsPageState extends State<ProductsPage>
     with SingleTickerProviderStateMixin {
+  // Màu sắc chủ đề Dream Cake
+  static const Color _primary = Color(0xFFF23B7E);
+  static const Color _bg = Color(0xFFFFF6FB);
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _imageUrlController = TextEditingController();
-  bool _isAvailable = true;
   late TabController _tabController;
   Product? _editingProduct;
 
@@ -26,10 +29,7 @@ class _ProductsPageState extends State<ProductsPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     Future.microtask(() {
-      final provider = Provider.of<AdminProductProvider>(
-        context,
-        listen: false,
-      );
+      final provider = Provider.of<AdminProductProvider>(context, listen: false);
       provider.fetchFeatureProducts();
       provider.fetchNewAchieveProducts();
     });
@@ -51,9 +51,6 @@ class _ProductsPageState extends State<ProductsPage>
     _descriptionController.clear();
     _imageUrlController.clear();
     _editingProduct = null;
-    setState(() {
-      _isAvailable = true;
-    });
   }
 
   String formatPrice(double price) {
@@ -62,86 +59,83 @@ class _ProductsPageState extends State<ProductsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Quản lý sản phẩm',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              ElevatedButton.icon(
-                onPressed:
-                    () => _showAddProductDialog(_tabController.index == 0),
-                icon: const Icon(Icons.add),
-                label: const Text('Thêm sản phẩm'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
+    return Scaffold(
+      backgroundColor: _bg,
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Quản lý sản phẩm',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          TabBar(
-            controller: _tabController,
-            labelColor: Colors.deepPurple,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: Colors.deepPurple,
-            tabs: const [
-              Tab(text: 'Sản phẩm nổi bật'),
-              Tab(text: 'Sản phẩm mới'),
-            ],
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [_buildProductList(true), _buildProductList(false)],
+                ElevatedButton.icon(
+                  onPressed: () => _showProductDialog(isFeature: _tabController.index == 0),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Thêm bánh mới'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    elevation: 5,
+                    shadowColor: _primary.withOpacity(0.3),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            TabBar(
+              controller: _tabController,
+              labelColor: _primary,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: _primary,
+              indicatorWeight: 3,
+              indicatorSize: TabBarIndicatorSize.label,
+              tabs: const [
+                Tab(text: 'Sản phẩm nổi bật'),
+                Tab(text: 'Sản phẩm mới'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildProductList(isFeature: true),
+                  _buildProductList(isFeature: false)
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildProductList(bool isFeature) {
+  Widget _buildProductList({required bool isFeature}) {
     return Consumer<AdminProductProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator(color: _primary));
         }
 
-        final products =
-            isFeature ? provider.featureProducts : provider.newAchieveProducts;
+        final products = isFeature ? provider.featureProducts : provider.newAchieveProducts;
 
         if (products.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.inventory_2_outlined,
-                  size: 80,
-                  color: Colors.grey[400],
-                ),
+                Icon(Icons.cake_outlined, size: 80, color: _primary.withOpacity(0.2)),
                 const SizedBox(height: 16),
                 Text(
-                  'Chưa có sản phẩm ${isFeature ? "nổi bật" : "mới"} nào',
+                  'Chưa có bánh ${isFeature ? "nổi bật" : "mới"} nào',
                   style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () => _showAddProductDialog(isFeature),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Thêm sản phẩm'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                  ),
                 ),
               ],
             ),
@@ -149,73 +143,49 @@ class _ProductsPageState extends State<ProductsPage>
         }
 
         return ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.only(top: 10),
           itemCount: products.length,
           itemBuilder: (context, index) {
             final product = products[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))
+                ],
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(12),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.network(
+                    product.image,
+                    width: 70,
+                    height: 70,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.broken_image, size: 70, color: Colors.grey),
+                  ),
+                ),
+                title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Text(formatPrice(product.price),
+                      style: const TextStyle(color: _primary, fontWeight: FontWeight.bold, fontSize: 15)),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Hình ảnh sản phẩm
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        product.image,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 80,
-                            height: 80,
-                            color: Colors.grey[200],
-                            child: const Icon(Icons.error, color: Colors.grey),
-                          );
-                        },
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, color: Colors.blueAccent),
+                      onPressed: () => _showProductDialog(isFeature: isFeature, product: product),
                     ),
-                    const SizedBox(width: 16),
-                    // Thông tin sản phẩm
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            product.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            formatPrice(product.price),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Các nút chức năng
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed:
-                              () => _showEditProductDialog(product, isFeature),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed:
-                              () => _showDeleteConfirmation(product, isFeature),
-                        ),
-                      ],
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                      onPressed: () => _showDeleteConfirmation(product, isFeature),
                     ),
                   ],
                 ),
@@ -227,351 +197,131 @@ class _ProductsPageState extends State<ProductsPage>
     );
   }
 
-  void _showAddProductDialog(bool isFeature) {
+  void _showProductDialog({required bool isFeature, Product? product}) {
+    if (product != null) {
+      _editingProduct = product;
+      _nameController.text = product.name;
+      _priceController.text = product.price.toString();
+      _descriptionController.text = product.description ?? '';
+      _imageUrlController.text = product.image;
+    } else {
+      _clearForm();
+    }
+
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Thêm sản phẩm ${isFeature ? "nổi bật" : "mới"}'),
-            content: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Tên sản phẩm',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.shopping_bag),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập tên sản phẩm';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _priceController,
-                      decoration: const InputDecoration(
-                        labelText: 'Giá',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.attach_money),
-                        prefixText: '\$ ',
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập giá';
-                        }
-                        if (double.tryParse(value) == null) {
-                          return 'Vui lòng nhập số hợp lệ';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Mô tả sản phẩm',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.description),
-                        alignLabelWithHint: true,
-                      ),
-                      maxLines: 3,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập mô tả sản phẩm';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _imageUrlController,
-                      decoration: const InputDecoration(
-                        labelText: 'URL hình ảnh',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.image),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập URL hình ảnh';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        title: Text(
+          product == null ? 'Thêm bánh ${isFeature ? "nổi bật" : "mới"}' : 'Sửa thông tin bánh',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTextField(_nameController, 'Tên bánh', Icons.cake_outlined),
+                const SizedBox(height: 15),
+                _buildTextField(_priceController, 'Giá bán (\$)', Icons.attach_money, isNumber: true),
+                const SizedBox(height: 15),
+                _buildTextField(_descriptionController, 'Mô tả chi tiết', Icons.description_outlined, maxLines: 3),
+                const SizedBox(height: 15),
+                _buildTextField(_imageUrlController, 'Link hình ảnh (URL)', Icons.link),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  _clearForm();
-                  Navigator.pop(context);
-                },
-                child: const Text('Hủy'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    final product = Product(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: _nameController.text,
-                      price: double.parse(_priceController.text),
-                      description: _descriptionController.text,
-                      image: _imageUrlController.text,
-                    );
-
-                    if (isFeature) {
-                      Provider.of<AdminProductProvider>(
-                        context,
-                        listen: false,
-                      ).addFeatureProduct(product);
-                    } else {
-                      Provider.of<AdminProductProvider>(
-                        context,
-                        listen: false,
-                      ).addNewAchieveProduct(product);
-                    }
-
-                    _clearForm();
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Thêm sản phẩm thành công'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Thêm'),
-              ),
-            ],
           ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Hủy', style: TextStyle(color: Colors.grey))
+          ),
+          ElevatedButton(
+            onPressed: () => _saveProduct(isFeature),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(product == null ? 'Thêm mới' : 'Lưu cập nhật'),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isNumber = false, int maxLines = 1}) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey),
+        prefixIcon: Icon(icon, color: _primary),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: _primary)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: Colors.grey.shade300)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      validator: (value) => value == null || value.isEmpty ? 'Vui lòng không để trống' : null,
+    );
+  }
+
+  Future<void> _saveProduct(bool isFeature) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final productData = Product(
+      id: _editingProduct?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameController.text,
+      price: double.parse(_priceController.text),
+      description: _descriptionController.text,
+      image: _imageUrlController.text,
+    );
+
+    try {
+      final provider = Provider.of<AdminProductProvider>(context, listen: false);
+      if (_editingProduct == null) {
+        isFeature ? await provider.addFeatureProduct(productData) : await provider.addNewAchieveProduct(productData);
+      } else {
+        isFeature ? await provider.editFeatureProduct(productData) : await provider.editNewAchieveProduct(productData);
+      }
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đã lưu thành công!'), backgroundColor: Colors.green, behavior: SnackBarBehavior.floating)
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating)
+      );
+    }
   }
 
   void _showDeleteConfirmation(Product product, bool isFeature) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Xác nhận xóa'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  color: Colors.red,
-                  size: 48,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Bạn có chắc chắn muốn xóa sản phẩm "${product.name}"?',
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Hủy'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (isFeature) {
-                    Provider.of<AdminProductProvider>(
-                      context,
-                      listen: false,
-                    ).deleteFeatureProduct(product.id!);
-                  } else {
-                    Provider.of<AdminProductProvider>(
-                      context,
-                      listen: false,
-                    ).deleteNewAchieveProduct(product.id!);
-                  }
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Đã xóa sản phẩm thành công'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Xóa'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Xác nhận xóa'),
+        content: Text('Bạn có chắc chắn muốn xóa bánh "${product.name}" khỏi danh sách?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            onPressed: () {
+              final provider = Provider.of<AdminProductProvider>(context, listen: false);
+              isFeature ? provider.deleteFeatureProduct(product.id!) : provider.deleteNewAchieveProduct(product.id!);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+            child: const Text('Xóa ngay'),
           ),
-    );
-  }
-
-  void _showEditProductDialog(Product product, bool isFeature) {
-    _nameController.text = product.name;
-    _priceController.text = product.price.toString();
-    _descriptionController.text = product.description ?? '';
-    _imageUrlController.text = product.image;
-    _editingProduct = product;
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Chỉnh sửa sản phẩm ${isFeature ? "nổi bật" : "mới"}'),
-            content: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Tên sản phẩm',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.shopping_bag),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập tên sản phẩm';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _priceController,
-                      decoration: const InputDecoration(
-                        labelText: 'Giá',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.attach_money),
-                        prefixText: '\$ ',
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập giá';
-                        }
-                        if (double.tryParse(value) == null) {
-                          return 'Vui lòng nhập số hợp lệ';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Mô tả sản phẩm',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.description),
-                        alignLabelWithHint: true,
-                      ),
-                      maxLines: 3,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập mô tả sản phẩm';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _imageUrlController,
-                      decoration: const InputDecoration(
-                        labelText: 'URL hình ảnh',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.image),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Vui lòng nhập URL hình ảnh';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  _clearForm();
-                  _editingProduct = null;
-                  Navigator.pop(context);
-                },
-                child: const Text('Hủy'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    try {
-                      final updatedProduct = Product(
-                        id: _editingProduct!.id,
-                        name: _nameController.text,
-                        price: double.parse(_priceController.text),
-                        description: _descriptionController.text,
-                        image: _imageUrlController.text,
-                      );
-
-                      if (isFeature) {
-                        await Provider.of<AdminProductProvider>(
-                          context,
-                          listen: false,
-                        ).editFeatureProduct(updatedProduct);
-                      } else {
-                        await Provider.of<AdminProductProvider>(
-                          context,
-                          listen: false,
-                        ).editNewAchieveProduct(updatedProduct);
-                      }
-
-                      _clearForm();
-                      _editingProduct = null;
-                      Navigator.pop(context);
-
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Cập nhật sản phẩm thành công'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Lỗi: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Cập nhật'),
-              ),
-            ],
-          ),
+        ],
+      ),
     );
   }
 }

@@ -10,9 +10,13 @@ class CustomersPage extends StatefulWidget {
 }
 
 class _CustomersPageState extends State<CustomersPage> {
+  static const Color _primary = Color(0xFFF23B7E); // Hồng Dream Cake
+  static const Color _bg = Color(0xFFFFF6FB);
+
   @override
   void initState() {
     super.initState();
+    // Tự động tải dữ liệu khi mở trang
     Future.microtask(() {
       Provider.of<CustomerProvider>(context, listen: false).fetchCustomers();
     });
@@ -20,193 +24,108 @@ class _CustomersPageState extends State<CustomersPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Quản lý người dùng',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Provider.of<CustomerProvider>(
-                    context,
-                    listen: false,
-                  ).fetchCustomers();
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Làm mới'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
+    return Scaffold(
+      backgroundColor: _bg,
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Tiêu đề và nút làm mới
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Danh sách thành viên',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: Consumer<CustomerProvider>(
-              builder: (context, provider, child) {
-                if (provider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                IconButton(
+                  onPressed: () => Provider.of<CustomerProvider>(context, listen: false).fetchCustomers(),
+                  icon: const Icon(Icons.refresh, color: _primary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
 
-                if (provider.customers.isEmpty) {
-                  return const Center(child: Text('Chưa có người dùng nào'));
-                }
+            // Danh sách hiển thị
+            Expanded(
+              child: Consumer<CustomerProvider>(
+                builder: (context, provider, child) {
+                  if (provider.isLoading) {
+                    return const Center(child: CircularProgressIndicator(color: _primary));
+                  }
 
-                return ListView.builder(
-                  itemCount: provider.customers.length,
-                  itemBuilder: (context, index) {
-                    final customer = provider.customers[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              customer['isBlocked'] ? Colors.red : Colors.green,
-                          child: Icon(
-                            customer['isBlocked'] ? Icons.block : Icons.person,
-                            color: Colors.white,
+                  if (provider.customers.isEmpty) {
+                    return const Center(
+                      child: Text('Không tìm thấy tài khoản nào trong collection "users"'),
+                    );
+                  }
+
+                  return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: provider.customers.length,
+                    itemBuilder: (context, index) {
+                      final customer = provider.customers[index];
+                      final bool isBlocked = customer['isBlocked'] ?? false;
+                      final String role = customer['role'] ?? 'user';
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 5)),
+                          ],
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                          leading: CircleAvatar(
+                            backgroundColor: isBlocked ? Colors.red.withOpacity(0.1) : _primary.withOpacity(0.1),
+                            child: Icon(isBlocked ? Icons.block : Icons.person, color: isBlocked ? Colors.red : _primary),
+                          ),
+                          title: Row(
+                            children: [
+                              Text(customer['userName'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), // userName
+                              const SizedBox(width: 8),
+                              _buildRoleBadge(role),
+                            ],
+                          ),
+                          subtitle: Text('Email: ${customer['email']}'),
+                          trailing: Switch(
+                            value: !isBlocked,
+                            activeColor: Colors.green,
+                            inactiveThumbColor: Colors.red,
+                            onChanged: (value) {
+                              provider.toggleBlockUser(customer['uid'], isBlocked);
+                            },
                           ),
                         ),
-                        title: Text(
-                          customer['userName'] ?? 'Không có tên',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Email: ${customer['email']}'),
-                            Text('SĐT: ${customer['phone']}'),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Switch(
-                              value: !customer['isBlocked'],
-                              onChanged: (value) {
-                                _showBlockConfirmation(
-                                  context,
-                                  customer['uid'],
-                                  customer['isBlocked'],
-                                  customer['userName'],
-                                );
-                              },
-                              activeColor: Colors.green,
-                              inactiveTrackColor: Colors.red,
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.more_vert),
-                              onPressed: () {
-                                _showCustomerDetails(context, customer);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  void _showBlockConfirmation(
-    BuildContext context,
-    String uid,
-    bool isBlocked,
-    String userName,
-  ) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(isBlocked ? 'Bỏ chặn người dùng' : 'Chặn người dùng'),
-            content: Text(
-              isBlocked
-                  ? 'Bạn có chắc chắn muốn bỏ chặn người dùng "$userName"?'
-                  : 'Bạn có chắc chắn muốn chặn người dùng "$userName"?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Hủy'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Provider.of<CustomerProvider>(
-                    context,
-                    listen: false,
-                  ).toggleBlockUser(uid, isBlocked);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isBlocked
-                            ? 'Đã bỏ chặn người dùng'
-                            : 'Đã chặn người dùng',
-                      ),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isBlocked ? Colors.green : Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(isBlocked ? 'Bỏ chặn' : 'Chặn'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _showCustomerDetails(
-    BuildContext context,
-    Map<String, dynamic> customer,
-  ) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Chi tiết người dùng'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Tên: ${customer['userName']}'),
-                const SizedBox(height: 8),
-                Text('Email: ${customer['email']}'),
-                const SizedBox(height: 8),
-                Text('SĐT: ${customer['phone']}'),
-                const SizedBox(height: 8),
-                Text(
-                  'Trạng thái: ${customer['isBlocked'] ? 'Đã chặn' : 'Hoạt động'}',
-                  style: TextStyle(
-                    color: customer['isBlocked'] ? Colors.red : Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Đóng'),
-              ),
-            ],
-          ),
+  // Widget hiển thị nhãn Admin/User
+  Widget _buildRoleBadge(String role) {
+    bool isAdmin = role == 'admin'; //
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isAdmin ? Colors.orange.shade100 : Colors.blue.shade100,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Text(
+        role.toUpperCase(),
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isAdmin ? Colors.orange.shade900 : Colors.blue.shade900),
+      ),
     );
   }
 }

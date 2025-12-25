@@ -15,41 +15,43 @@ class Product {
     this.isAvailable,
   });
 
-  // Convert Product object to Map
+  // Chuyển đối tượng Product thành Map để lưu lên Firebase
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
       'price': price,
-      'description': description,
+      // Ánh xạ biến description trong code thành trường 'product_details' trên Firebase
+      'product_details': description,
       'image': image,
       'isAvailable': isAvailable ?? true,
     };
   }
 
-  // Create Product object from Map
+  // Tạo đối tượng Product từ dữ liệu Map lấy về từ Firebase
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
       id: map['id'],
       name: map['name'] ?? '',
       price: (map['price'] ?? 0.0).toDouble(),
-      description: map['description'],
+      // Ưu tiên lấy dữ liệu từ 'product_details', nếu không có mới tìm 'description'
+      description: map['product_details'] ?? map['description'] ?? 'Chưa có mô tả cho sản phẩm này.',
       image: map['image'] ?? '',
       isAvailable: map['isAvailable'] ?? true,
     );
   }
 
-  // Convert Product object to JSON
+  // Chuyển đổi sang JSON
   Map<String, dynamic> toJson() {
     return toMap();
   }
 
-  // Create Product object from JSON
+  // Tạo đối tượng từ JSON
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product.fromMap(json);
   }
 
-  // Create a copy of Product with some fields updated
+  // Tạo bản sao của Product với một vài trường được thay đổi
   Product copyWith({
     String? id,
     String? name,

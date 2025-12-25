@@ -11,3 +11,4 @@ class CartModel {
     required this.quantity,
   });
 }
+// Đại diện cho 1 sản phẩm trong giỏ hàng

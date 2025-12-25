@@ -4,140 +4,67 @@ import 'package:flutter/material.dart';
 
 class CategoryProvider with ChangeNotifier {
   List<Product> shirt = [];
-  Product? shirtData;
-  List<Product> dress =[];
-  Product? dressData;
-  List<Product> shoes =[];
-  Product? shoesData;
-  List<Product> pant =[];
-  Product? pantData;
-  List<Product> tie =[];
-  Product? tieData;
+  List<Product> dress = [];
+  List<Product> shoes = [];
+  List<Product> pant = [];
+  List<Product> tie = [];
 
+  // docId category root của bạn
+  static const _categoryRootDocId = "ZITKuL6SpEr9vvWPijS7";
 
+  Future<List<Product>> _readCategorySub(String sub) async {
+    final newList = <Product>[];
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection("category")
+          .doc(_categoryRootDocId)
+          .collection(sub)
+          .get();
+
+      for (final doc in snap.docs) {
+        // Lấy dữ liệu và gán thêm ID từ Firestore vào Map
+        Map<String, dynamic> data = doc.data();
+        data['id'] = doc.id;
+        newList.add(Product.fromMap(data));
+      }
+    } catch (e) {
+      debugPrint("Lỗi khi đọc sub-collection $sub: $e");
+    }
+    return newList;
+  }
 
   Future<void> getShirtData() async {
-    List<Product> newList = [];
-    QuerySnapshot shirtSnapShot =
-    await FirebaseFirestore.instance
-        .collection("category")
-        .doc("ZITKuL6SpEr9vvWPijS7")
-        .collection("shirt")
-        .get();
-    for (var element in shirtSnapShot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product shirtData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(shirtData);
-    }
-    shirt = newList;
-    notifyListeners();
+    shirt = await _readCategorySub("shirt");
+    notifyListeners(); // Thông báo để UI cập nhật
   }
 
-  List<Product> get getShirtList {
-    return shirt;
-  }
+  List<Product> get getShirtList => shirt;
 
   Future<void> getDressData() async {
-    List<Product> newList = [];
-    QuerySnapshot shirtSnapShot =
-    await FirebaseFirestore.instance
-        .collection("category")
-        .doc("ZITKuL6SpEr9vvWPijS7")
-        .collection("dress")
-        .get();
-    for (var element in shirtSnapShot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product shirtData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(shirtData);
-    }
-    dress = newList;
+    dress = await _readCategorySub("dress");
     notifyListeners();
   }
 
-  List<Product> get getDressList {
-    return dress;
-  }
+  List<Product> get getDressList => dress;
 
   Future<void> getShoesData() async {
-    List<Product> newList = [];
-    QuerySnapshot shirtSnapShot =
-    await FirebaseFirestore.instance
-        .collection("category")
-        .doc("ZITKuL6SpEr9vvWPijS7")
-        .collection("shoes")
-        .get();
-    for (var element in shirtSnapShot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product shirtData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(shirtData);
-    }
-    shoes = newList;
+    shoes = await _readCategorySub("shoes");
     notifyListeners();
   }
 
-  List<Product> get getshoesList {
-    return shoes;
-  }
+  List<Product> get getshoesList => shoes;
 
   Future<void> getPantData() async {
-    List<Product> newList = [];
-    QuerySnapshot shirtSnapShot =
-    await FirebaseFirestore.instance
-        .collection("category")
-        .doc("ZITKuL6SpEr9vvWPijS7")
-        .collection("pant")
-        .get();
-    for (var element in shirtSnapShot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product shirtData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(shirtData);
-    }
-    pant = newList;
+    pant = await _readCategorySub("pant");
     notifyListeners();
   }
 
-  List<Product> get getPantList {
-    return pant;
-  }
+  List<Product> get getPantList => pant;
 
   Future<void> getTieData() async {
-    List<Product> newList = [];
-    QuerySnapshot shirtSnapShot =
-    await FirebaseFirestore.instance
-        .collection("category")
-        .doc("ZITKuL6SpEr9vvWPijS7")
-        .collection("tie")
-        .get();
-    for (var element in shirtSnapShot.docs) {
-      var data = element.data() as Map<String, dynamic>;
-      Product shirtData = Product(
-        image: data["image"],
-        name: data["name"],
-        price: data["price"],
-      );
-      newList.add(shirtData);
-    }
-    tie = newList;
+    tie = await _readCategorySub("tie");
     notifyListeners();
   }
 
-  List<Product> get getTieList {
-    return tie;
-  }
+  List<Product> get getTieList => tie;
 }

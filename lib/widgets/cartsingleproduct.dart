@@ -1,115 +1,125 @@
 import 'package:flutter/material.dart';
 
-class CartSingleProduct extends StatefulWidget {
+class CartSingleProduct extends StatelessWidget {
   final String name;
   final String image;
-  int quantity;
+  final int quantity; // Chuyển sang final
   final double price;
   final bool isCount;
-  final void Function(int) onQuantityChanged; // Thêm tham số callback
+  final void Function(int) onQuantityChanged;
 
-  CartSingleProduct({
+  const CartSingleProduct({
+    super.key,
     required this.quantity,
     required this.image,
     required this.name,
     required this.price,
     this.isCount = true,
-    required this.onQuantityChanged, // Thêm vào constructor
+    required this.onQuantityChanged,
   });
 
-  @override
-  State<CartSingleProduct> createState() => _CartSingleProductState();
-}
+  static const Color _primary = Color(0xFFF23B7E);
 
-TextStyle myStyle = TextStyle(fontSize: 18);
-
-class _CartSingleProductState extends State<CartSingleProduct> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 150,
-      width: double.infinity,
-      child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Hình ảnh sản phẩm (Bo góc)
+          Container(
+            height: 100,
+            width: 100,
+            margin: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: NetworkImage(image),
+              ),
+            ),
+          ),
+
+          // Thông tin sản phẩm
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: 110,
-                  width: 150,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.fill,
-                      image: NetworkImage(widget.image),
-                    ),
+                Text(
+                  name,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Container(
-                  height: 140,
-                  width: 200,
-                  child: ListTile(
-                    title: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(widget.name),
-                        Text("Cloths"),
-                        Text(
-                          "\$${widget.price.toString()}",
-                          style: TextStyle(
-                            color: Color(0xff9b96d6),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          height: 35,
-                          width: widget.isCount == false ? 120 : 100,
-                          color: Color(0xfff2f2f2),
-                          child: Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceEvenly, // Added spaceEvenly
-                            children: <Widget>[
-                              GestureDetector(
-                                child: Icon(Icons.remove),
-                                onTap: () {
-                                  setState(() {
-                                    if (widget.quantity > 1) {
-                                      widget.quantity--;
-                                      widget.onQuantityChanged(widget.quantity); // Gọi callback
-                                    } else {
-                                      // Gửi tín hiệu xóa sản phẩm khi số lượng là 0
-                                      widget.onQuantityChanged(0);
-                                    }
-                                  });
-                                },
-                              ),
-                              Text(
-                                widget
-                                    .quantity
-                                    .toString(), // Use widget.quantity here
-                                style: TextStyle(fontSize: 18),
-                              ),
-                              GestureDetector(
-                                child: Icon(Icons.add),
-                                onTap: () {
-                                  setState(() {
-                                    widget.quantity++;
-                                    widget.onQuantityChanged(widget.quantity); // Gọi callback
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                const Text(
+                  "Dream Cake Bakery",
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "\$${price.toStringAsFixed(2)}",
+                  style: const TextStyle(
+                    color: _primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
               ],
             ),
-          ],
+          ),
+
+          // Bộ điều khiển số lượng (Thiết kế hiện đại)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              children: [
+                _buildQtyIcon(Icons.add, () => onQuantityChanged(quantity + 1)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    quantity.toString(),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                _buildQtyIcon(
+                    Icons.remove,
+                        () => onQuantityChanged(quantity > 1 ? quantity - 1 : 0)
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget con cho nút bấm cộng/trừ
+  Widget _buildQtyIcon(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(50),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: _primary.withOpacity(0.1),
+          shape: BoxShape.circle,
         ),
+        child: Icon(icon, size: 18, color: _primary),
       ),
     );
   }

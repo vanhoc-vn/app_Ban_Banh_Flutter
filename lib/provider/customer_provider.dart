@@ -8,51 +8,54 @@ class CustomerProvider with ChangeNotifier {
   List<Map<String, dynamic>> get customers => _customers;
   bool get isLoading => _isLoading;
 
+  // Lấy dữ liệu từ bảng 'users' trên Firebase
   Future<void> fetchCustomers() async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .where('role', isEqualTo: 'user')
-              .get();
+      // Lấy toàn bộ document trong collection 'users'
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .get();
 
-      _customers =
-          snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return {
-              'uid': doc.id,
-              'email': data['email'] ?? '',
-              'userName': data['userName'] ?? '',
-              'phone': data['phone'] ?? '',
-              'isBlocked': data['isBlocked'] ?? false,
-            };
-          }).toList();
+      // Debug: In ra số lượng document tìm thấy
+      debugPrint("Tìm thấy ${snapshot.docs.length} khách hàng trong Firestore");
 
-      _isLoading = false;
-      notifyListeners();
+      _customers = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'uid': doc.id,
+          'email': data['email'] ?? 'Chưa có email',
+          'userName': data['userName'] ?? 'Khách hàng ẩn danh', // Hiển thị userName
+          'phone': data['phone'] ?? 'Chưa có SĐT',
+          'isBlocked': data['isBlocked'] ?? false,
+          'role': data['role'] ?? 'user', // Lấy thêm role để phân loại
+        };
+      }).toList();
     } catch (e) {
+      debugPrint("Lỗi fetchCustomers: $e");
+    } finally {
       _isLoading = false;
       notifyListeners();
-      rethrow;
     }
   }
 
+  // Chặn hoặc bỏ chặn người dùng
   Future<void> toggleBlockUser(String uid, bool isBlocked) async {
     try {
       await FirebaseFirestore.instance.collection('users').doc(uid).update({
         'isBlocked': !isBlocked,
       });
 
+      // Cập nhật trạng thái ngay lập tức trong danh sách cục bộ
       final index = _customers.indexWhere((customer) => customer['uid'] == uid);
       if (index != -1) {
         _customers[index]['isBlocked'] = !isBlocked;
         notifyListeners();
       }
     } catch (e) {
-      rethrow;
+      debugPrint("Lỗi toggleBlockUser: $e");
     }
   }
 }

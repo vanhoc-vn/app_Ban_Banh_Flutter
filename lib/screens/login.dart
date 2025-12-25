@@ -7,7 +7,6 @@ import 'package:e_commerical/widgets/mytextformField.dart';
 import 'package:e_commerical/widgets/passwordtextformfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Login extends StatefulWidget {
@@ -17,197 +16,146 @@ class Login extends StatefulWidget {
   State<Login> createState() => _LoginState();
 }
 
-final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-String p =
+final _formKey = GlobalKey<FormState>();
+const _emailRegex =
     r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
 
-RegExp regExp = RegExp(p);
-
-bool obserText = true;
-String? email;
-String? password;
-
 class _LoginState extends State<Login> {
-  Widget _buildAllPart() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 100),
-          const Center(
-            child: Text(
-              "Login",
-              style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
-            ),
+  bool obserText = true;
+  bool _isLoading = false;
+  String? email;
+  String? password;
+
+  final Color primary = const Color(0xFFF23B7E);
+  final Color bg = const Color(0xFFFFF6FB);
+
+  Future<void> _login() async {
+    final form = _formKey.currentState;
+    if (form == null || !form.validate() || email == null || password == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email!.trim(),
+        password: password!.trim(),
+      );
+      final uid = cred.user?.uid;
+      if (uid == null) throw FirebaseAuthException(code: 'no-uid', message: 'Không lấy được UID');
+
+      final token = await FirebaseAuth.instance.currentUser?.getIdTokenResult(true);
+      final isAdminClaim = token?.claims?['admin'] == true;
+
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = doc.data() as Map<String, dynamic>?;
+      final isBlocked = (data?['isBlocked'] as bool?) ?? false;
+      final role = (data?['role'] as String?) ?? 'user';
+
+      if (isBlocked) {
+        await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Tài khoản bị chặn. Liên hệ admin để được hỗ trợ."),
+            backgroundColor: Colors.red,
           ),
-          const SizedBox(height: 30),
-          MyTextFormField(
-            name: "Email",
-            onChanged: (value) {
-              setState(() {
-                email = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Please Fill Email";
-              } else if (!regExp.hasMatch(value)) {
-                return "Email không đúng.";
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-          PassWordTextFormField(
-            obserText: obserText,
-            name: "Password",
-            onChanged: (value) {
-              setState(() {
-                password = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Please Fill Password";
-              } else if (value.length < 6) {
-                return "Mật khẩu phải có ít nhất 6 ký tự";
-              }
-              return null;
-            },
-            onTap: () {
-              FocusScope.of(context).unfocus();
-              setState(() {
-                obserText = !obserText;
-              });
-            },
-          ),
-          const SizedBox(height: 20),
-          MyButton(
-            onPressed: () {
-              validation();
-            },
-            name: "Login",
-          ),
-          const SizedBox(height: 10),
-          ChangeScreen(
-            name: "SignUp",
-            whichAccount: "I Have Not Account!",
-            onTap: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (ctx) => const Signup()),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void validation() async {
-    final FormState? form = _formKey.currentState;
-    if (form!.validate()) {
-      try {
-        // Đăng nhập với Firebase Auth
-        UserCredential result = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(
-              email: email!.trim(),
-              password: password!.trim(),
-            );
-
-        // Lấy thông tin user từ Firestore
-        DocumentSnapshot userDoc =
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(result.user!.uid)
-                .get();
-
-        if (userDoc.exists) {
-          String role = userDoc.get('role') ?? 'user';
-          String storedPassword = userDoc.get('password') ?? '';
-
-          // Kiểm tra isBlocked với giá trị mặc định là false nếu chưa tồn tại
-          bool isBlocked = false;
-          if (userDoc.data() != null) {
-            Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
-            isBlocked = data['isBlocked'] ?? false;
-          }
-
-          // Kiểm tra xem tài khoản có bị chặn không
-          if (isBlocked) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Tài khoản của bạn đã bị chặn. Vui lòng liên hệ admin để được hỗ trợ.",
-                  ),
-                  backgroundColor: Colors.red,
-                ),
-              );
-              // Đăng xuất người dùng nếu tài khoản bị chặn
-              await FirebaseAuth.instance.signOut();
-              return;
-            }
-          }
-
-          // Kiểm tra password
-          if (password!.trim() == storedPassword) {
-            if (mounted) {
-              if (role == 'admin') {
-                // Chuyển đến trang admin
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AdminLayout()),
-                );
-              } else {
-                // Chuyển đến trang user
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Đăng nhập thành công!")),
-                );
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                );
-              }
-            }
-          } else {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Mật khẩu không đúng")),
-              );
-            }
-          }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Không tìm thấy thông tin người dùng"),
-              ),
-            );
-          }
-        }
-      } on FirebaseAuthException catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.message ?? "Lỗi không xác định")),
-          );
-        }
+        );
+        return;
       }
+
+      if (!mounted) return;
+      final isAdmin = isAdminClaim || role == 'admin';
+      if (isAdmin) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminLayout()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Đăng nhập thành công!")),
+        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomePage()));
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? "Lỗi không xác định")),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bg,
       resizeToAvoidBottomInset: true,
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[_buildAllPart()],
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 170,
+                      child: Image.asset(
+                        'images/dream_cake_2.png', // đảm bảo file nằm trong thư mục images/
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 26),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          MyTextFormField(
+                            name: "Email",
+                            onChanged: (v) => setState(() => email = v),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return "Please Fill Email";
+                              if (!RegExp(_emailRegex).hasMatch(v)) return "Email không đúng.";
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+                          PassWordTextFormField(
+                            obserText: obserText,
+                            name: "Password",
+                            onChanged: (v) => setState(() => password = v),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return "Please Fill Password";
+                              if (v.length < 6) return "Mật khẩu phải có ít nhất 6 ký tự";
+                              return null;
+                            },
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              setState(() => obserText = !obserText);
+                            },
+                          ),
+                          const SizedBox(height: 22),
+                          _isLoading
+                              ? const CircularProgressIndicator()
+                              : SizedBox(
+                            width: double.infinity,
+                            child: MyButton(onPressed: _login, name: "Login"),
+                          ),
+                          const SizedBox(height: 12),
+                          ChangeScreen(
+                            name: "SignUp",
+                            whichAccount: "I Have Not Account!",
+                            onTap: () => Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(builder: (_) => const Signup()),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
